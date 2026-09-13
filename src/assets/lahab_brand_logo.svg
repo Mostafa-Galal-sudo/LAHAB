@@ -1,0 +1,21 @@
+<svg viewBox="0 0 400 480" width="400" height="480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g fill="#D8A065">
+    <!-- Main outer Flame Stem & Right Swear (Alif / Lam Hook) -->
+    <path d="M200 40 C205 75 220 120 250 165 C282 212 315 268 310 325 C306 372 278 408 258 418 C282 400 296 368 294 325 C289 275 262 228 232 182 C214 155 200 110 200 40 Z" />
+    
+    <!-- Central Soaring Flame Stem (Lam / Haa Vertical Core) -->
+    <path d="M200 40 C190 92 160 148 145 202 C130 252 144 302 170 322 C154 308 146 284 152 254 C162 210 188 142 200 40 Z" />
+
+    <!-- Mid Inner Flame Accent Flicker -->
+    <path d="M212 180 C216 205 214 230 200 248 C192 260 182 266 174 260 C186 252 196 235 198 218 C200 202 202 190 212 180 Z" />
+
+    <!-- Haa (هـ) Central Sacred Loop Eye with Negative Space -->
+    <path d="M172 235 C192 228 238 252 242 288 C245 322 206 348 168 342 C134 336 124 302 140 268 C150 245 162 237 172 235 Z M176 260 C162 260 150 278 154 298 C159 318 184 325 204 318 C222 310 226 288 214 270 C202 256 188 260 176 260 Z" fill-rule="evenodd" />
+
+    <!-- Baa (ب) Sweeping Baseline Basin & Left Flame Cusp -->
+    <path d="M275 372 C222 402 160 412 100 388 C68 375 46 345 52 305 C56 280 70 260 85 248 C72 264 64 286 66 305 C69 334 90 358 120 370 C175 392 236 378 275 372 Z" />
+
+    <!-- Nuqta (نقطة) Diamond Dot of Baa (ب) -->
+    <polygon points="160,402 174,416 160,430 146,416" />
+  </g>
+</svg>
