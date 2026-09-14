@@ -405,21 +405,14 @@ export default function App() {
       {/* 2. Brand Story Section */}
       <BrandStory t={t.story} isArabic={isArabic} />
 
-      {/* 3. Feature 7: 360° Drape & Rotation Viewer */}
-      <Garment360Viewer
-        products={products}
-        language={language}
-        theme={theme}
-      />
-
-      {/* 4. Editorial Lookbook Section */}
+      {/* 3. Editorial Lookbook Section */}
       <EditorialLookbook
         t={t.editorial}
         language={language}
         onOpenSizingModal={() => setIsSizingOpen(true)}
       />
 
-      {/* 5. Product Showcase Section (With Monogram Launcher, Fit Guide, & Wishlist Save) */}
+      {/* 4. Product Showcase Section (With Monogram Launcher, Fit Guide, & Wishlist Save) */}
       <ProductShowcase
         products={products}
         reviews={reviews}
@@ -431,6 +424,13 @@ export default function App() {
         onToggleSave={handleToggleSave}
         t={t.showcase}
         language={language}
+      />
+
+      {/* 5. Feature 7: 360° Drape & Rotation Viewer (moved below Products per request) */}
+      <Garment360Viewer
+        products={products}
+        language={language}
+        theme={theme}
       />
 
       {/* Customer Product Reviews, Ratings & Comment Section */}
