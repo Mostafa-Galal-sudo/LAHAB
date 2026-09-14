@@ -98,13 +98,14 @@ export const BrandStory: React.FC<BrandStoryProps> = ({ t }) => {
               {t.body}
             </p>
 
-            {/* 3 Pillars with Staggered Entrance */}
+            {/* 3 Pillars with Staggered Entrance - hidden on mobile per request
+                (shortens the section on phones), unchanged on desktop */}
             <motion.div
               variants={pillarsContainer}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: false, amount: 0.2 }}
-              className="pt-6 grid grid-cols-1 sm:grid-cols-3 gap-6 border-t border-[#E2E6E8]/20"
+              className="hidden sm:grid pt-6 grid-cols-1 sm:grid-cols-3 gap-6 border-t border-[#E2E6E8]/20"
             >
               <motion.div variants={pillarItem} className="p-4 bg-[#132238]/40 border border-[#E2E6E8]/10 card-hover-alive">
                 <span className="block font-heading text-xs sm:text-sm text-[#D8A065] tracking-wider mb-2">
