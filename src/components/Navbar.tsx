@@ -1,5 +1,5 @@
-import React from 'react';
-import { Heart, Sun, Moon, Package } from 'lucide-react';
+import React, { useState } from 'react';
+import { Heart, Sun, Moon, Package, Menu, X, ShoppingBag } from 'lucide-react';
 import Wordmark from './Wordmark';
 import { TranslationSchema, Language } from '../translations';
 import { Theme } from '../types';
@@ -39,6 +39,22 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const isArabic = language === 'ar';
   const isDesert = theme === 'desert';
+  // BUG FIX: nav links were `hidden lg:flex` with no mobile equivalent at
+  // all - on any screen under 1024px (i.e. every phone) they simply
+  // disappeared with no way to reach Products, Reviews, Contact, etc.
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const navLinks = [
+    { href: '#products', label: t.pieces, emphasized: true, icon: ShoppingBag },
+    { href: '#drape-360', label: isArabic ? 'عرض ٣٦٠°' : '360° DRAPE' },
+    { href: '#lookbook', label: isArabic ? 'إطلالات الشارع' : 'LOOKBOOK' },
+    { href: '#authenticity', label: isArabic ? 'التحقق من القطع' : 'VERIFIER' },
+    { href: '#vault', label: isArabic ? 'الخزينة // DROP 02' : 'VAULT' },
+    { href: '#reviews', label: isArabic ? 'التقييمات' : 'REVIEWS' },
+    { href: '#contact', label: isArabic ? 'تواصل معنا' : 'CONTACT', highlighted: true },
+  ];
+
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
     <nav
@@ -52,48 +68,17 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Center: Nav links (Desktop) strictly translated */}
       <div className="hidden lg:flex items-center gap-6 font-heading text-xs tracking-widest text-[#E2E6E8]">
-        <a
-          href="#products"
-          className="hover:text-[#D8A065] transition-colors tracking-widest"
-        >
-          {t.pieces}
-        </a>
-        <a
-          href="#drape-360"
-          className="hover:text-[#D8A065] transition-colors tracking-widest"
-        >
-          {isArabic ? 'عرض ٣٦٠°' : '360° DRAPE'}
-        </a>
-        <a
-          href="#lookbook"
-          className="hover:text-[#D8A065] transition-colors tracking-widest"
-        >
-          {isArabic ? 'إطلالات الشارع' : 'LOOKBOOK'}
-        </a>
-        <a
-          href="#authenticity"
-          className="hover:text-[#D8A065] transition-colors tracking-widest"
-        >
-          {isArabic ? 'التحقق من القطع' : 'VERIFIER'}
-        </a>
-        <a
-          href="#vault"
-          className="hover:text-[#D8A065] transition-colors tracking-widest"
-        >
-          {isArabic ? 'الخزينة // DROP 02' : 'VAULT'}
-        </a>
-        <a
-          href="#reviews"
-          className="hover:text-[#D8A065] transition-colors tracking-widest"
-        >
-          {isArabic ? 'التقييمات' : 'REVIEWS'}
-        </a>
-        <a
-          href="#contact"
-          className="hover:text-[#D8A065] transition-colors tracking-widest text-[#D8A065]"
-        >
-          {isArabic ? 'تواصل معنا' : 'CONTACT'}
-        </a>
+        {navLinks.map((link) => (
+          <a
+            key={link.href}
+            href={link.href}
+            className={`hover:text-[#D8A065] transition-colors tracking-widest ${
+              link.highlighted ? 'text-[#D8A065]' : ''
+            }`}
+          >
+            {link.label}
+          </a>
+        ))}
         {onOpenOutfitStudio && (
           <button
             onClick={onOpenOutfitStudio}
@@ -110,8 +95,19 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
       </div>
 
-      {/* Right Controls: Theme Switcher, Wishlist, Language Button, Currency, Bag */}
+      {/* Right Controls: Mobile Menu Toggle, Theme Switcher, Wishlist, Language Button, Currency, Bag */}
       <div className="flex items-center gap-2 sm:gap-2.5">
+        {/* Mobile Menu Toggle - only shown below the lg breakpoint where the
+            center nav links are hidden */}
+        <button
+          onClick={() => setIsMobileMenuOpen((v) => !v)}
+          aria-label={isArabic ? 'فتح القائمة' : 'Open menu'}
+          aria-expanded={isMobileMenuOpen}
+          className="lg:hidden p-2 border border-[#E2E6E8]/20 text-[#E2E6E8]/80 hover:text-[#D8A065] hover:border-[#D8A065]/60 transition-colors cursor-pointer"
+        >
+          {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+        </button>
+
         {/* Theme Switcher Button */}
         <button
           id="theme-switcher-toggle"
@@ -198,6 +194,56 @@ export const Navbar: React.FC<NavbarProps> = ({
           </span>
         </button>
       </div>
+
+      {/* Mobile Menu Panel - shows the same links the desktop bar hides below lg.
+          "Pieces/Shop" is pinned first and visually emphasized so reaching the
+          product grid is one tap away instead of a long scroll. */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden absolute top-full inset-x-0 bg-[#0D1929] border-b border-[#E2E6E8]/20 shadow-xl max-h-[calc(100vh-4.5rem)] overflow-y-auto">
+          <div className="flex flex-col divide-y divide-[#E2E6E8]/10">
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={closeMobileMenu}
+                  className={`flex items-center gap-3 px-5 py-3.5 font-heading text-sm tracking-widest transition-colors ${
+                    link.emphasized
+                      ? 'text-[#D8A065] bg-[#D8A065]/10 font-bold'
+                      : link.highlighted
+                      ? 'text-[#D8A065]'
+                      : 'text-[#E2E6E8] hover:bg-[#132238]'
+                  }`}
+                >
+                  {Icon && <Icon className="w-4 h-4 shrink-0" />}
+                  {link.label}
+                </a>
+              );
+            })}
+            {onOpenOutfitStudio && (
+              <button
+                onClick={() => {
+                  onOpenOutfitStudio();
+                  closeMobileMenu();
+                }}
+                className="text-start px-5 py-3.5 font-heading text-sm tracking-widest text-[#D8A065] font-bold hover:bg-[#132238] cursor-pointer"
+              >
+                {isArabic ? 'استوديو الإطلالات' : 'OUTFIT STUDIO'}
+              </button>
+            )}
+            <button
+              onClick={() => {
+                onOpenSizingModal();
+                closeMobileMenu();
+              }}
+              className="text-start px-5 py-3.5 font-heading text-sm tracking-widest text-[#E2E6E8] hover:bg-[#132238] cursor-pointer"
+            >
+              {t.sizeGuide}
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

@@ -1,0 +1,1 @@
+INSERT INTO admin_users (username, passwordHash, createdAt) VALUES ('admin_bbba41', 'pbkdf2$100000$90572d20d562637f670a951d091492c7$d5b0da596afdd3945afec8d3aa838ba375bcb9543ebddd67b0bd13df06acfefb', '2026-09-13T13:16:49.270Z');
