@@ -7,6 +7,13 @@ import AuthenticityCertificateModal from './AuthenticityCertificateModal';
 
 interface SerialVerifierProps {
   language: Language;
+  schemaContent?: {
+    badge: string;
+    title: string;
+    description: string;
+    submitLabel: string;
+    demoSerials: string[];
+  };
 }
 
 interface VerificationRecord {
@@ -77,7 +84,7 @@ const SAMPLE_DATABASE: Record<string, VerificationRecord> = {
   },
 };
 
-export const SerialVerifier: React.FC<SerialVerifierProps> = ({ language }) => {
+export const SerialVerifier: React.FC<SerialVerifierProps> = ({ language, schemaContent }) => {
   const isArabic = language === 'ar';
   const [inputSerial, setInputSerial] = useState('LHB-01-042/200');
   const [result, setResult] = useState<VerificationRecord | null>(SAMPLE_DATABASE['LHB-01-042/200']);
@@ -140,17 +147,17 @@ export const SerialVerifier: React.FC<SerialVerifierProps> = ({ language }) => {
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 border border-[#D8A065]/40 px-3 py-1 bg-[#132238]/60 text-xs font-heading text-[#D8A065] tracking-widest uppercase">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>{isArabic ? 'التحقق الأرشيفي الرقمي' : 'ARCHIVAL SERIAL VERIFIER'}</span>
+            <span>{schemaContent?.badge || (isArabic ? 'التحقق الأرشيفي الرقمي' : 'ARCHIVAL SERIAL VERIFIER')}</span>
           </div>
 
           <h2 className="font-heading text-3xl sm:text-5xl text-[#D8A065] uppercase tracking-wide">
-            {isArabic ? 'التحقق من أصالة القطعة وسجل الإنتاج' : 'Certificate of Authenticity'}
+            {schemaContent?.title || (isArabic ? 'التحقق من أصالة القطعة وسجل الإنتاج' : 'Certificate of Authenticity')}
           </h2>
 
           <p className="font-body text-xs sm:text-sm text-[#E2E6E8]/70 max-w-xl mx-auto leading-relaxed">
-            {isArabic
+            {schemaContent?.description || (isArabic
               ? 'تحمل كل قطعة من لَهَب رمزاً تسلسلياً فريداً منقوشاً على بطاقة العنق، يثبت أصالتها ومصدر غزلها وتطريزها اليدوي في مصر.'
-              : 'Every LΛHΛB piece is individually numbered (1 of 200) with a woven tamper-proof security identifier. Verify its provenance and weaving batch here.'}
+              : 'Every LΛHΛB piece is individually numbered (1 of 200) with a woven tamper-proof security identifier. Verify its provenance and weaving batch here.')}
           </p>
         </div>
 
@@ -173,7 +180,7 @@ export const SerialVerifier: React.FC<SerialVerifierProps> = ({ language }) => {
               className="btn-lahab-primary px-8 py-3.5 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md"
             >
               <ShieldCheck className="w-4 h-4" />
-              <span>{isArabic ? 'فحص الأصالة' : 'VERIFY PIECE'}</span>
+              <span>{schemaContent?.submitLabel || (isArabic ? 'فحص الأصالة' : 'VERIFY PIECE')}</span>
             </button>
           </form>
 
@@ -182,7 +189,7 @@ export const SerialVerifier: React.FC<SerialVerifierProps> = ({ language }) => {
             <span className="font-heading text-[11px] text-[#E2E6E8]/60 uppercase">
               {isArabic ? 'نماذج سريعة للاختبار:' : 'Test Archive Serials:'}
             </span>
-            {['LHB-01-018/200', 'LHB-01-042/200', 'LHB-01-084/200'].map((s) => (
+            {(schemaContent?.demoSerials || ['LHB-01-018/200', 'LHB-01-042/200', 'LHB-01-084/200']).map((s) => (
               <button
                 key={s}
                 type="button"

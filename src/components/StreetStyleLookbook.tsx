@@ -8,6 +8,7 @@ import streetwearEditorial from '../assets/images/streetwear_editorial_178890480
 interface StreetStyleLookbookProps {
   language: Language;
   onShopLook: (productId: ProductId, size: GarmentSize) => void;
+  schemaContent?: { badge: string; title: string };
 }
 
 interface StreetLook {
@@ -31,6 +32,7 @@ interface StreetLook {
 export const StreetStyleLookbook: React.FC<StreetStyleLookbookProps> = ({
   language,
   onShopLook,
+  schemaContent,
 }) => {
   const isArabic = language === 'ar';
   const [activeFilter, setActiveFilter] = useState<'all' | 'cairo' | 'dubai' | 'london'>('all');
@@ -123,11 +125,11 @@ export const StreetStyleLookbook: React.FC<StreetStyleLookbookProps> = ({
             <div className="flex items-center gap-2 mb-2">
               <Camera className="w-4 h-4 text-[#D8A065]" />
               <span className="font-heading text-xs text-[#D8A065] tracking-widest uppercase">
-                {isArabic ? 'مجتمع لَهَب // SEEN IN LAHAB' : 'SEEN IN LΛHΛB // ARCHIVAL STREET-STYLE'}
+                {schemaContent?.badge || (isArabic ? 'مجتمع لَهَب // SEEN IN LAHAB' : 'SEEN IN LΛHΛB // ARCHIVAL STREET-STYLE')}
               </span>
             </div>
             <h2 className="font-heading text-3xl sm:text-5xl text-[#D8A065] uppercase tracking-wide">
-              {isArabic ? 'أناقة الشارع وتنسيق القطع' : 'Community Lookbook'}
+              {schemaContent?.title || (isArabic ? 'أناقة الشارع وتنسيق القطع' : 'Community Lookbook')}
             </h2>
           </div>
 

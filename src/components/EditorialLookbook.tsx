@@ -7,6 +7,7 @@ interface EditorialLookbookProps {
   t: TranslationSchema['editorial'];
   language: Language;
   onOpenSizingModal: () => void;
+  schemaCards?: Array<{ title: string; description: string; image: string }>;
 }
 
 const cardsContainer = {
@@ -37,8 +38,11 @@ export const EditorialLookbook: React.FC<EditorialLookbookProps> = ({
   t,
   language,
   onOpenSizingModal,
+  schemaCards,
 }) => {
   const isArabic = language === 'ar';
+  const frontCard = schemaCards?.[0];
+  const backCard = schemaCards?.[1];
 
   return (
     <section
@@ -89,7 +93,7 @@ export const EditorialLookbook: React.FC<EditorialLookbookProps> = ({
           >
             <div className="aspect-4/5 overflow-hidden relative">
               <img
-                src={streetwearEditorial}
+                src={frontCard?.image || streetwearEditorial}
                 alt="LAHAB Heavyweight Hoodie Editorial Front"
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover object-center filter contrast-105 transition-transform duration-700 group-hover:scale-105"
@@ -100,16 +104,16 @@ export const EditorialLookbook: React.FC<EditorialLookbookProps> = ({
             <div className="p-6 sm:p-8 space-y-3 relative z-10 -mt-16 bg-[#0D1929]/95 border-t border-[#E2E6E8]/20 backdrop-blur-md">
               <div className="flex items-center justify-between">
                 <span className="font-heading text-xs text-[#D8A065] tracking-widest uppercase">
-                  {isArabic ? 'هودي الشارع المعماري // الواجهة' : 'FRONT ARCHITECTURE // HOODIE'}
+                  {frontCard?.title || (isArabic ? 'هودي الشارع المعماري // الواجهة' : 'FRONT ARCHITECTURE // HOODIE')}
                 </span>
                 <span className="font-mono text-xs text-[#E2E6E8] border border-[#E2E6E8]/30 px-2 py-0.5">
                   520 GSM
                 </span>
               </div>
               <p className="font-body text-xs sm:text-sm text-[#E2E6E8]/80 leading-relaxed">
-                {isArabic
+                {frontCard?.description || (isArabic
                   ? 'قصة بأكتاف ساقطة واسعة تضمن ثبات وانسيابية القماش، وتطريز ذهبي مطفي عالي الدقة على الصدر.'
-                  : 'Boxy drop-shoulder cut with dense drape, reinforced double hood collar, and high-density matte gold chest embroidery.'}
+                  : 'Boxy drop-shoulder cut with dense drape, reinforced double hood collar, and high-density matte gold chest embroidery.')}
               </p>
             </div>
           </motion.div>
@@ -121,7 +125,7 @@ export const EditorialLookbook: React.FC<EditorialLookbookProps> = ({
           >
             <div className="aspect-4/5 overflow-hidden relative bg-[#0B1524] flex items-center justify-center">
               <img
-                src={streetwearEditorial}
+                src={backCard?.image || streetwearEditorial}
                 alt="LAHAB Heavyweight Hoodie Flame Calligraphy Silhouette"
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover object-center filter contrast-110 brightness-95 scale-x-[-1] transition-transform duration-700 group-hover:scale-x-[-1] group-hover:scale-105"
@@ -132,16 +136,16 @@ export const EditorialLookbook: React.FC<EditorialLookbookProps> = ({
             <div className="p-6 sm:p-8 space-y-3 relative z-10 -mt-16 bg-[#0D1929]/95 border-t border-[#E2E6E8]/20 backdrop-blur-md">
               <div className="flex items-center justify-between">
                 <span className="font-heading text-xs text-[#D8A065] tracking-widest uppercase">
-                  {isArabic ? 'طباعة حروف اللهب // الظهر' : 'FLAME CALLIGRAPHY // BACK'}
+                  {backCard?.title || (isArabic ? 'طباعة حروف اللهب // الظهر' : 'FLAME CALLIGRAPHY // BACK')}
                 </span>
                 <span className="font-mono text-xs text-[#E2E6E8] border border-[#E2E6E8]/30 px-2 py-0.5">
                   520 GSM
                 </span>
               </div>
               <p className="font-body text-xs sm:text-sm text-[#E2E6E8]/80 leading-relaxed">
-                {isArabic
+                {backCard?.description || (isArabic
                   ? 'طباعة أرشيفية عريضة بحروف لَهَب تعكس طاقة النار، محاطة بحواف متينة ونسيج صوف فرينش تيري فائق النعومة والمتانة.'
-                  : 'Monumental arch back print honoring fire calligraphic dynamism, framed by ultra-durable French Terry ribs.'}
+                  : 'Monumental arch back print honoring fire calligraphic dynamism, framed by ultra-durable French Terry ribs.')}
               </p>
             </div>
           </motion.div>

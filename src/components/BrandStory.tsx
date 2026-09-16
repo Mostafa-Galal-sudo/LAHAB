@@ -6,9 +6,15 @@ import { TranslationSchema } from '../translations';
 interface BrandStoryProps {
   t: TranslationSchema['story'];
   isArabic: boolean;
+  visualLabel?: string;
+  materialTags?: string[];
 }
 
-export const BrandStory: React.FC<BrandStoryProps> = ({ t }) => {
+export const BrandStory: React.FC<BrandStoryProps> = ({
+  t,
+  visualLabel = 'HERITAGE ARCHITECTURAL CUTS',
+  materialTags = ['520 GSM FLEECE', 'GIZA 86 COTTON'],
+}) => {
   return (
     <section
       id="story"
@@ -48,17 +54,15 @@ export const BrandStory: React.FC<BrandStoryProps> = ({ t }) => {
 
           <div className="mt-8 text-center border-t border-[#E2E6E8]/15 pt-4 w-full relative z-10 space-y-2">
             <span className="font-heading text-xs tracking-widest text-[#D8A065] block uppercase font-bold">
-              HERITAGE ARCHITECTURAL CUTS
+              {visualLabel}
             </span>
 
             <div className="flex flex-wrap items-center justify-center gap-2 pt-1 font-mono text-[10px] text-[#E2E6E8]/80">
-              <span className="border border-[#D8A065]/40 px-2 py-0.5 bg-[#0D1929]/80">
-                520 GSM FLEECE
-              </span>
-
-              <span className="border border-[#D8A065]/40 px-2 py-0.5 bg-[#0D1929]/80">
-                GIZA 86 COTTON
-              </span>
+              {materialTags.map((tag) => (
+                <span key={tag} className="border border-[#D8A065]/40 px-2 py-0.5 bg-[#0D1929]/80">
+                  {tag}
+                </span>
+              ))}
             </div>
           </div>
         </motion.div>

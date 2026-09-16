@@ -28,6 +28,13 @@ interface ProductReviewsSectionProps {
   onReviewsChanged: () => void;
   language: Language;
   selectedProductId?: ProductId;
+  schemaContent?: {
+    badge: string;
+    title: string;
+    description: string;
+    allowSubmissions: boolean;
+    showFilters: boolean;
+  };
 }
 
 export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
@@ -36,6 +43,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
   onReviewsChanged,
   language,
   selectedProductId,
+  schemaContent,
 }) => {
   const isArabic = language === 'ar';
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -331,26 +339,26 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 border border-[#D8A065]/40 px-3 py-1 bg-[#132238]/60 text-xs font-heading text-[#D8A065] tracking-widest uppercase">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>{isArabic ? 'آراء العملاء وصور المقتنين' : 'CLIENT REVIEWS & FIT GALLERY'}</span>
+              <span>{schemaContent?.badge || (isArabic ? 'آراء العملاء وصور المقتنين' : 'CLIENT REVIEWS & FIT GALLERY')}</span>
             </div>
             <h2 className="font-heading text-3xl sm:text-4xl text-[#D8A065] uppercase tracking-wide">
-              {isArabic ? 'التقييمات وصور الإطلالات' : 'REVIEWS FROM OUR COLLECTORS'}
+              {schemaContent?.title || (isArabic ? 'التقييمات وصور الإطلالات' : 'REVIEWS FROM OUR COLLECTORS')}
             </h2>
             <p className="font-body text-xs sm:text-sm text-[#E2E6E8]/70 max-w-xl leading-relaxed">
-              {isArabic
+              {schemaContent?.description || (isArabic
                 ? 'شهادات حقيقية وصور إطلالات من مقتني الإصدار الأول في القاهرة، الإسكندرية، الرياض، ودبي حول وزن نسيج 520 جرام وتطريز خيوط الذهب وقصة الأكتاف.'
-                : 'Authentic reviews and real fit photos from verified collectors across Cairo, Dubai, and Riyadh highlighting the 520 GSM drape and gold diacritic embroidery.'}
+                : 'Authentic reviews and real fit photos from verified collectors across Cairo, Dubai, and Riyadh highlighting the 520 GSM drape and gold diacritic embroidery.')}
             </p>
           </div>
 
-          <button
+          {(schemaContent?.allowSubmissions ?? true) && <button
             type="button"
             onClick={() => setIsFormOpen(!isFormOpen)}
             className="btn-lahab-primary px-6 py-3 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer self-start md:self-auto shadow-lg"
           >
             <MessageSquarePlus className="w-4 h-4" />
             <span>{isFormOpen ? (isArabic ? 'إغلاق النموذج' : 'CLOSE FORM') : (isArabic ? 'إضافة تقييم وصور' : 'WRITE A REVIEW & UPLOAD FIT')}</span>
-          </button>
+          </button>}
         </div>
 
         {/* Rating Breakdown Dashboard */}

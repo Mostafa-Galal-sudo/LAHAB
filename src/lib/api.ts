@@ -117,3 +117,11 @@ export const adminLogin = (username: string, password: string) =>
 export const adminLogout = () => request<{ success: true }>(`${ADMIN_API_BASE}/logout`, { method: 'POST' });
 
 export const adminMe = () => request<{ username: string }>(`${ADMIN_API_BASE}/me`);
+
+// ---------------------------------------------------------------------------
+// Published pages (validated again by the storefront before rendering)
+// ---------------------------------------------------------------------------
+export const getPublishedPage = (slug: string) =>
+  request<{ page: unknown; revisionId: string; publishedAt: string | null }>(
+    `/api/pages/${encodeURIComponent(slug)}`
+  );

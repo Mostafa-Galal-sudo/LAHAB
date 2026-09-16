@@ -10,12 +10,14 @@ interface HeroSectionProps {
   onExploreClick: () => void;
   t: TranslationSchema['hero'];
   isArabic: boolean;
+  backgroundImageUrl?: string;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
   onExploreClick,
   t,
   isArabic,
+  backgroundImageUrl = watercolorHeroArt,
 }) => {
   return (
     <header
@@ -31,7 +33,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         aria-hidden="true"
       >
         <img
-          src={watercolorHeroArt}
+          src={backgroundImageUrl}
           alt="LAHAB Watercolor Artwork"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center opacity-60 filter contrast-110"

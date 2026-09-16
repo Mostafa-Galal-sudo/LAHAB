@@ -19,6 +19,15 @@ import { Language } from '../translations';
 
 interface ContactSectionProps {
   language: Language;
+  schemaContent?: {
+    badge: string;
+    title: string;
+    description: string;
+    email: string;
+    phoneDisplay: string;
+    whatsappNumber: string;
+    responseTime: string;
+  };
 }
 
 const ATELIER_EMAIL = 'lahabfire@gmail.com';
@@ -37,8 +46,11 @@ interface ServerResult {
   timestamp: string;
 }
 
-export const ContactSection: React.FC<ContactSectionProps> = ({ language }) => {
+export const ContactSection: React.FC<ContactSectionProps> = ({ language, schemaContent }) => {
   const isArabic = language === 'ar';
+  const atelierEmail = schemaContent?.email || ATELIER_EMAIL;
+  const atelierPhoneDisplay = schemaContent?.phoneDisplay || ATELIER_PHONE_DISPLAY;
+  const atelierWhatsappNumber = schemaContent?.whatsappNumber || ATELIER_WHATSAPP_NUMBER;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -73,7 +85,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ language }) => {
 
   const handleCopy = (type: 'email' | 'phone') => {
     if (type === 'email') {
-      navigator.clipboard?.writeText(ATELIER_EMAIL);
+      navigator.clipboard?.writeText(atelierEmail);
       setCopiedEmail(true);
       setTimeout(() => setCopiedEmail(false), 2500);
     } else {
@@ -331,12 +343,12 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ language }) => {
       // Fallback: Generate client links so user is never stranded
       const code = `LHB-INQ-${Math.floor(1000 + Math.random() * 9000)}`;
       const formatted = formatMessageForDispatch();
-      const whatsappUrl = `https://wa.me/${ATELIER_WHATSAPP_NUMBER}?text=${encodeURIComponent(formatted)}`;
+      const whatsappUrl = `https://wa.me/${atelierWhatsappNumber}?text=${encodeURIComponent(formatted)}`;
       const safeSubject = encodeURIComponent(
         formData.subject ? `[LΛHΛB Inquiry #${code}] ${formData.subject}` : `[LΛHΛB Inquiry #${code}] From ${formData.name}`
       );
-      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${ATELIER_EMAIL}&su=${safeSubject}&body=${encodeURIComponent(formatted)}`;
-      const mailtoUrl = `mailto:${ATELIER_EMAIL}?subject=${safeSubject}&body=${encodeURIComponent(formatted)}`;
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${atelierEmail}&su=${safeSubject}&body=${encodeURIComponent(formatted)}`;
+      const mailtoUrl = `mailto:${atelierEmail}?subject=${safeSubject}&body=${encodeURIComponent(formatted)}`;
 
       const fallbackResult: ServerResult = {
         inquiryId: code,
@@ -395,7 +407,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ language }) => {
         <div className="space-y-4 text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 border border-[#D8A065]/40 bg-[#132238]/80 px-4 py-1.5 text-xs font-mono text-[#D8A065] tracking-widest uppercase">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>{isArabic ? 'أتيليه لَهَب — خدمة العملاء والطلبات الخاصة' : 'ATELIER CONCIERGE & BESPOKE INQUIRIES'}</span>
+            <span>{schemaContent?.badge || (isArabic ? 'أتيليه لَهَب — خدمة العملاء والطلبات الخاصة' : 'ATELIER CONCIERGE & BESPOKE INQUIRIES')}</span>
           </div>
 
           <h2 className="font-heading text-4xl sm:text-5xl lg:text-6xl text-[#E2E6E8] tracking-tight uppercase">
@@ -411,9 +423,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ language }) => {
           </h2>
 
           <p className="font-body text-base sm:text-lg text-[#E2E6E8]/70 leading-relaxed">
-            {isArabic
+            {schemaContent?.description || (isArabic
               ? 'فريق أتيليه لَهَب متواجد لخدمتك مباشرة للإجابة على استفسارات المقاسات، طلبات التطريز الخاص بالخيوط الذهبية، أو متابعة التوصيل السريع.'
-              : 'Our atelier concierge is dedicated to assisting you with architectural drape sizing, custom bespoke gold monogramming, and express regional courier tracking.'}
+              : 'Our atelier concierge is dedicated to assisting you with architectural drape sizing, custom bespoke gold monogramming, and express regional courier tracking.')}
           </p>
         </div>
 
@@ -430,7 +442,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ language }) => {
                   {isArabic ? 'البريد الرسمي للأتيليه' : 'ATELIER DIRECT EMAIL'}
                 </h3>
                 <span className="font-mono text-xs text-[#D8A065] block mt-1 select-all break-all">
-                  {ATELIER_EMAIL}
+                  {atelierEmail}
                 </span>
               </div>
             </div>
@@ -443,7 +455,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ language }) => {
 
             <div className="pt-2 flex flex-col sm:flex-row items-center gap-2">
               <a
-                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${ATELIER_EMAIL}&su=${encodeURIComponent(
+                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${atelierEmail}&su=${encodeURIComponent(
                   '[LΛHΛB Atelier Inquiry]'
                 )}`}
                 target="_blank"
@@ -454,7 +466,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ language }) => {
                 <span>{isArabic ? 'فتح في Gmail' : 'GMAIL (NEW TAB)'}</span>
               </a>
               <a
-                href={`mailto:${ATELIER_EMAIL}?subject=${encodeURIComponent('[LΛHΛB Atelier Inquiry]')}`}
+                href={`mailto:${atelierEmail}?subject=${encodeURIComponent('[LΛHΛB Atelier Inquiry]')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-lahab-outline flex-1 w-full py-2 text-xs font-bold text-center flex items-center justify-center gap-1.5 cursor-pointer hover:bg-[#D8A065] hover:text-[#0D1929]"
@@ -484,7 +496,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ language }) => {
                   {isArabic ? 'محادثة واتساب الفورية' : 'WHATSAPP CONCIERGE'}
                 </h3>
                 <span className="font-mono text-xs text-[#25D366] block mt-1 dir-ltr">
-                  {ATELIER_PHONE_DISPLAY}
+                  {atelierPhoneDisplay}
                 </span>
               </div>
             </div>
@@ -497,7 +509,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ language }) => {
 
             <div className="pt-2 flex items-center gap-2">
               <a
-                href={`https://wa.me/${ATELIER_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+                href={`https://wa.me/${atelierWhatsappNumber}?text=${encodeURIComponent(
                   isArabic
                     ? 'السلام عليكم، أود الاستفسار عن تصاميم وقطع لَهَب LΛHΛB'
                     : 'Hello LΛHΛB Atelier, I would like to inquire about your collections.'
@@ -544,12 +556,12 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ language }) => {
             <div className="space-y-2 pt-1 font-mono text-xs text-[#D8A065]">
               <div className="flex items-center gap-2">
                 <Clock className="w-3.5 h-3.5 shrink-0" />
-                <span>{isArabic ? 'الرد خلال ساعتين بحد أقصى' : 'Avg. Response: < 2 Hours'}</span>
+                <span>{schemaContent?.responseTime || (isArabic ? 'الرد خلال ساعتين بحد أقصى' : 'Avg. Response: < 2 Hours')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 shrink-0" />
                 <a href={`tel:+201288224920`} className="hover:underline">
-                  {ATELIER_PHONE_DISPLAY}
+                  {atelierPhoneDisplay}
                 </a>
               </div>
             </div>
@@ -566,7 +578,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ language }) => {
                 </h3>
                 <span className="text-xs font-mono text-[#D8A065]">
                   {isArabic ? 'الوجهة: ' : 'DESTINATION: '}
-                  {ATELIER_EMAIL} & {ATELIER_PHONE_DISPLAY}
+                  {atelierEmail} & {atelierPhoneDisplay}
                 </span>
               </div>
               <span className="text-[11px] font-heading px-3 py-1 border border-[#D8A065]/40 bg-[#132238] text-[#D8A065] self-start sm:self-auto">
@@ -597,8 +609,8 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ language }) => {
                       </div>
                       <p className="font-body text-xs text-[#E2E6E8]/90 mt-1 leading-relaxed">
                         {isArabic
-                          ? `تم تسجيل رسالتك في نظام الأتيليه بنجاح وتجهيزها لصندوق ${ATELIER_EMAIL}. يمكنك المتابعة المباشرة عبر واتساب أو فتح الرسالة في Gmail:`
-                          : `Your inquiry was securely handled by our server and routed to ${ATELIER_EMAIL}. You can seamlessly continue on WhatsApp or open in Gmail:`}
+                          ? `تم تسجيل رسالتك في نظام الأتيليه بنجاح وتجهيزها لصندوق ${atelierEmail}. يمكنك المتابعة المباشرة عبر واتساب أو فتح الرسالة في Gmail:`
+                          : `Your inquiry was securely handled by our server and routed to ${atelierEmail}. You can seamlessly continue on WhatsApp or open in Gmail:`}
                       </p>
                     </div>
                   </div>
@@ -884,8 +896,8 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ language }) => {
                       <Send className="w-4 h-4" />
                       <span>
                         {isArabic
-                          ? `إرسال الاستفسار إلى الأتيليه (${ATELIER_EMAIL})`
-                          : `SUBMIT INQUIRY TO ATELIER (${ATELIER_EMAIL})`}
+                          ? `إرسال الاستفسار إلى الأتيليه (${atelierEmail})`
+                          : `SUBMIT INQUIRY TO ATELIER (${atelierEmail})`}
                       </span>
                     </>
                   )}
@@ -937,8 +949,8 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ language }) => {
 
               <div className="text-center font-mono text-[11px] text-[#E2E6E8]/60 leading-relaxed">
                 {isArabic
-                  ? `يتم استقبال استفساراتك مباشرة وتوجيهها إلى البريد الرسمي ${ATELIER_EMAIL} ورقم الواتساب ${ATELIER_PHONE_DISPLAY}.`
-                  : `Inquiries route securely to atelier address ${ATELIER_EMAIL} & official WhatsApp ${ATELIER_PHONE_DISPLAY}.`}
+                  ? `يتم استقبال استفساراتك مباشرة وتوجيهها إلى البريد الرسمي ${atelierEmail} ورقم الواتساب ${atelierPhoneDisplay}.`
+                  : `Inquiries route securely to atelier address ${atelierEmail} & official WhatsApp ${atelierPhoneDisplay}.`}
               </div>
             </form>
           </div>

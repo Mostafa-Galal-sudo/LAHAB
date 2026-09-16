@@ -5,9 +5,10 @@ import { Language } from '../translations';
 
 interface ArchivalVaultTeaserProps {
   language: Language;
+  schemaContent?: { badge: string; title: string; description: string };
 }
 
-export const ArchivalVaultTeaser: React.FC<ArchivalVaultTeaserProps> = ({ language }) => {
+export const ArchivalVaultTeaser: React.FC<ArchivalVaultTeaserProps> = ({ language, schemaContent }) => {
   const isArabic = language === 'ar';
   const [passcode, setPasscode] = useState('');
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -110,17 +111,17 @@ export const ArchivalVaultTeaser: React.FC<ArchivalVaultTeaserProps> = ({ langua
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 border border-[#D8A065]/40 px-3 py-1 bg-[#132238]/60 text-xs font-heading text-[#D8A065] tracking-widest uppercase">
             {isUnlocked ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
-            <span>{isArabic ? 'خزينة الأرشيف القادم' : 'ARCHIVAL VAULT // DROP 02'}</span>
+            <span>{schemaContent?.badge || (isArabic ? 'خزينة الأرشيف القادم' : 'ARCHIVAL VAULT // DROP 02')}</span>
           </div>
 
           <h2 className="font-heading text-3xl sm:text-5xl text-[#D8A065] uppercase tracking-wide">
-            {isArabic ? 'الإصدار الثاني // [مخفي]' : 'Drop 02: [REDACTED]'}
+            {schemaContent?.title || (isArabic ? 'الإصدار الثاني // [مخفي]' : 'Drop 02: [REDACTED]')}
           </h2>
 
           <p className="font-body text-xs sm:text-sm text-[#E2E6E8]/70 max-w-xl mx-auto leading-relaxed">
-            {isArabic
+            {schemaContent?.description || (isArabic
               ? 'معاينة سرية وحصرية للقطع المعمارية القادمة من علامة لَهَب. أدخل رمز VIP الخاص بك أو سجل بياناتك لفتح المخططات.'
-              : 'Classified early look at our upcoming dawn silhouette capsule. Unlock the blueprints with your VIP pass or register for early allocation privileges.'}
+              : 'Classified early look at our upcoming dawn silhouette capsule. Unlock the blueprints with your VIP pass or register for early allocation privileges.')}
           </p>
 
           {/* Live Countdown Digit Boxes */}

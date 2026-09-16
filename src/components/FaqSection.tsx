@@ -17,7 +17,7 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 
 export const FaqSection: React.FC<FaqSectionProps> = ({ t, language }) => {
   // Default first item expanded for immediate discovery
-  const [expandedId, setExpandedId] = useState<string | null>('shipping');
+  const [expandedId, setExpandedId] = useState<string | null>(t.items[0]?.id ?? null);
   const isArabic = language === 'ar';
 
   const toggleItem = (id: string) => {
@@ -61,7 +61,7 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ t, language }) => {
       >
         {t.items.map((item, index) => {
           const isOpen = expandedId === item.id;
-          const icon = CATEGORY_ICONS[item.id] || <HelpCircle className="w-4 h-4 text-[#D8A065]" />;
+          const icon = CATEGORY_ICONS[item.id.replace(/^faq-/, '')] || <HelpCircle className="w-4 h-4 text-[#D8A065]" />;
 
           return (
             <div

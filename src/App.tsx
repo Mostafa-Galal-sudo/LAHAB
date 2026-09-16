@@ -8,18 +8,6 @@ import { motion, useScroll, useSpring } from 'motion/react';
 import { ShoppingBag } from 'lucide-react';
 import { ProductItem, CartItem, GarmentSize, WishlistItem, MonogramCustomization, ProductId, Theme, ProductReview } from './types';
 import Navbar from './components/Navbar';
-import HeroSection from './components/HeroSection';
-import BrandStory from './components/BrandStory';
-import Garment360Viewer from './components/Garment360Viewer';
-import EditorialLookbook from './components/EditorialLookbook';
-import ProductShowcase from './components/ProductShowcase';
-import StreetStyleLookbook from './components/StreetStyleLookbook';
-import SerialVerifier from './components/SerialVerifier';
-import ArchivalVaultTeaser from './components/ArchivalVaultTeaser';
-import ProductReviewsSection from './components/ProductReviewsSection';
-import ContactSection from './components/ContactSection';
-import FaqSection from './components/FaqSection';
-import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
 import WishlistDrawer from './components/WishlistDrawer';
 import SizeGuideModal from './components/SizeGuideModal';
@@ -33,6 +21,11 @@ import FlameMedallionLoader from './components/FlameMedallionLoader';
 import Wordmark from './components/Wordmark';
 import FlameCursor from './components/FlameCursor';
 import { translations, Language } from './translations';
+import PageRenderer from './pageBuilder/PageRenderer';
+import LegacyStorefrontPage from './pageBuilder/LegacyStorefrontPage';
+import type { StorefrontContext } from './pageBuilder/StorefrontContext';
+import type { PageDocument } from '../shared/pageSchema';
+import { validatePageDocument } from '../shared/pageSchemaValidation';
 import {
   getProducts,
   getReviews,
@@ -43,6 +36,7 @@ import {
   getWishlist,
   addToWishlistApi,
   removeFromWishlistApi,
+  getPublishedPage,
 } from './lib/api';
 
 export default function App() {
@@ -95,6 +89,8 @@ export default function App() {
   // BUG FIX: reviews used to live only in each visitor's own localStorage. They now
   // come from the shared server database so every visitor sees the same reviews.
   const [reviews, setReviews] = useState<ProductReview[]>([]);
+  const [publishedPage, setPublishedPage] = useState<PageDocument | null>(null);
+  const [pageLoading, setPageLoading] = useState(true);
 
   const refreshReviews = useCallback(() => {
     getReviews()
@@ -118,9 +114,30 @@ export default function App() {
     refreshReviews();
   }, [loadProducts, refreshReviews]);
 
+  useEffect(() => {
+    let active = true;
+    getPublishedPage('home')
+      .then(({ page }) => {
+        if (!active) return;
+        const validation = validatePageDocument(page);
+        if (validation.valid) setPublishedPage(page as PageDocument);
+        else console.warn('[LAHAB Storefront] Published page validation failed; using legacy composition.', validation.errors);
+      })
+      .catch((error) => {
+        console.warn('[LAHAB Storefront] Published page unavailable; using legacy composition.', error);
+      })
+      .finally(() => {
+        if (active) setPageLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   // Handle URL hash scrolling (e.g. #authenticity, #lookbook) when page finishes loading or hash changes
   useEffect(() => {
-    if (productsLoading) return;
+    if (productsLoading || pageLoading) return;
     const handleHashChange = () => {
       const hash = window.location.hash;
       if (hash) {
@@ -136,7 +153,7 @@ export default function App() {
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [productsLoading]);
+  }, [pageLoading, productsLoading]);
 
   // BUG FIX: cart used to live only in local React state (lost on refresh) and
   // wishlist used to live in browser localStorage (per-browser, not shared across
@@ -293,7 +310,31 @@ export default function App() {
     }
   };
 
-  if (productsLoading) {
+  const storefrontContext: StorefrontContext = {
+    products,
+    reviews,
+    language,
+    isArabic,
+    theme,
+    currency: selectedCurrency,
+    translations: t,
+    selectedReviewsProductId: reviewsProductId,
+    savedProductIds: savedItems.map((item) => item.productId),
+    onAddToCart: handleAddToCart,
+    onToggleWishlist: handleToggleSave,
+    onOpenMonogram: handleOpenMonogramModal,
+    onOpenFitVisualizer: () => setIsFitVisualizerOpen(true),
+    onOpenReviews: handleOpenReviews,
+    onOpenSizeGuide: () => setIsSizingOpen(true),
+    onReviewsChanged: refreshReviews,
+    onScrollToProducts: handleScrollToProducts,
+    onShopLook: (productId, size) => {
+      const product = products.find((item) => item.id === productId);
+      if (product) handleAddToCart(product, size);
+    },
+  };
+
+  if (productsLoading || pageLoading) {
     return (
       <div className="min-h-screen bg-[#0D1929] flex items-center justify-center">
         <Wordmark size="md" />
@@ -375,99 +416,11 @@ export default function App() {
         </div>
       )}
 
-      {/* 1. Hero Section (Authentic watercolor artwork & master wordmark) */}
-      <HeroSection
-        onExploreClick={handleScrollToProducts}
-        t={t.hero}
-        isArabic={isArabic}
-      />
-
-      {/* Calligraphic Divider Ribbon */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: false, amount: 0.3 }}
-        transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-[#132238] py-8 border-y border-[#E2E6E8]/20 flex items-center justify-center gap-6 sm:gap-10 select-none overflow-hidden px-4"
-      >
-        <span className="hidden sm:inline-block font-heading text-xs text-[#D8A065] tracking-widest uppercase">
-          {t.banner.streetwear}
-        </span>
-        <span className="w-1.5 h-1.5 bg-[#D8A065] rotate-45" />
-        <Wordmark size="sm" showMedallion={false} />
-        <span className="w-1.5 h-1.5 bg-[#D8A065] rotate-45" />
-        <span className="font-heading text-xs sm:text-sm text-[#D8A065] tracking-widest uppercase">
-          {t.banner.tagline}
-        </span>
-        <span className="hidden md:inline-block w-1.5 h-1.5 bg-[#D8A065] rotate-45" />
-        <span className="hidden md:inline-block font-heading text-xs text-[#E2E6E8]/70 tracking-widest uppercase">
-          {t.banner.origin}
-        </span>
-      </motion.div>
-
-      {/* 2. Brand Story Section */}
-      <BrandStory t={t.story} isArabic={isArabic} />
-
-      {/* 3. Editorial Lookbook Section */}
-      <EditorialLookbook
-        t={t.editorial}
-        language={language}
-        onOpenSizingModal={() => setIsSizingOpen(true)}
-      />
-
-      {/* 4. Product Showcase Section (With Monogram Launcher, Fit Guide, & Wishlist Save) */}
-      <ProductShowcase
-        products={products}
-        reviews={reviews}
-        onAddToCart={handleAddToCart}
-        onOpenMonogram={handleOpenMonogramModal}
-        onOpenFitVisualizer={() => setIsFitVisualizerOpen(true)}
-        onOpenReviews={handleOpenReviews}
-        savedProductIds={savedItems.map((i) => i.productId)}
-        onToggleSave={handleToggleSave}
-        t={t.showcase}
-        language={language}
-      />
-
-      {/* 5. Feature 7: 360° Drape & Rotation Viewer (moved below Products per request) */}
-      <Garment360Viewer
-        products={products}
-        language={language}
-        theme={theme}
-      />
-
-      {/* Customer Product Reviews, Ratings & Comment Section */}
-      <ProductReviewsSection
-        products={products}
-        reviews={reviews}
-        onReviewsChanged={refreshReviews}
-        language={language}
-        selectedProductId={reviewsProductId}
-      />
-
-      {/* 6. Feature 4: Community Street-Style Lookbook ("Seen in LAHAB") */}
-      <StreetStyleLookbook
-        onSelectProduct={(productId) => {
-          const p = products.find((item) => item.id === productId);
-          if (p) handleAddToCart(p, 'L');
-        }}
-        language={language}
-      />
-
-      {/* 7. Feature 5: Authenticity & Edition Serial Verifier */}
-      <SerialVerifier language={language} />
-
-      {/* 8. Feature 6: Archival Vault Teaser (Drop 02 VIP Access) */}
-      <ArchivalVaultTeaser language={language} />
-
-      {/* 9. Compact FAQ Accordion Section */}
-      <FaqSection t={t.faq} language={language} />
-
-      {/* Direct Atelier Contact & WhatsApp Concierge */}
-      <ContactSection language={language} />
-
-      {/* 10. Footer */}
-      <Footer t={t.footer} />
+      {publishedPage ? (
+        <PageRenderer page={publishedPage} context={storefrontContext} />
+      ) : (
+        <LegacyStorefrontPage context={storefrontContext} />
+      )}
 
       {/* Sticky "View Bag" bar - mobile only, shown whenever the bag has items.
           Desktop already has the bag button in the navbar; this just gives

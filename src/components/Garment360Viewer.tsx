@@ -16,11 +16,19 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { ProductItem, Theme } from '../types';
 import { Language } from '../translations';
+import type { ModelPresentation } from '../../shared/pageSchema';
 
 interface Garment360ViewerProps {
   products: ProductItem[];
   language: Language;
   theme?: Theme;
+  modelUrl?: string;
+  schemaContent?: {
+    badge: string;
+    title: string;
+    description: string;
+    model: ModelPresentation;
+  };
 }
 
 interface LoadedModelMeta {
@@ -35,6 +43,8 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
   products,
   language,
   theme = 'navy',
+  modelUrl = '/assets/models/lahab_drop01_hoodie.obj',
+  schemaContent,
 }) => {
   const isArabic = language === 'ar';
   const selectedProduct = products[0] || {
@@ -47,7 +57,7 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
   // 3D Engine State
   const [angle, setAngle] = useState<number>(0);
   const angleRef = useRef<number>(0);
-  const [isAutoOrbit, setIsAutoOrbit] = useState<boolean>(true);
+  const [isAutoOrbit, setIsAutoOrbit] = useState<boolean>(schemaContent?.model.autoRotate ?? true);
   const [loadedModelMeta, setLoadedModelMeta] = useState<LoadedModelMeta | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isModelLoading, setIsModelLoading] = useState(false);
@@ -196,7 +206,7 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
     setIsModelLoading(true);
     setLoadError(null);
     try {
-      const response = await fetch('/assets/models/lahab_drop01_hoodie.obj');
+      const response = await fetch(modelUrl);
       if (!response.ok) {
         throw new Error(`Failed to load persistent model (${response.status})`);
       }
@@ -206,7 +216,7 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
         parseAndMountObj(
           text,
           persistentModelGroupRef.current,
-          'lahab_drop01_hoodie.obj',
+          modelUrl.split('/').pop() || 'lahab_drop01_hoodie.obj',
           '34.8',
           true
         );
@@ -227,7 +237,7 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
       setActiveModelMode('architectural');
       setIsModelLoading(false);
     }
-  }, [parseAndMountObj]);
+  }, [modelUrl, parseAndMountObj]);
 
   // Initialize Three.js Scene
   useEffect(() => {
@@ -511,17 +521,17 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
         <div className="text-center max-w-2xl mx-auto mb-14 space-y-3">
           <div className="inline-flex items-center gap-2 border border-[#D8A065]/40 px-3 py-1 bg-[#132238]/60 text-xs font-heading text-[#D8A065] tracking-widest uppercase">
             <RotateCw className="w-3.5 h-3.5" />
-            <span>{isArabic ? 'دراسة القوام بزاوية 360 درجة' : '360° INTERACTIVE GARMENT STUDIO'}</span>
+            <span>{schemaContent?.badge || (isArabic ? 'دراسة القوام بزاوية 360 درجة' : '360° INTERACTIVE GARMENT STUDIO')}</span>
           </div>
 
           <h2 className="font-heading text-3xl sm:text-4xl text-[#D8A065] uppercase tracking-wide">
-            {isArabic ? 'مجسم الهودي الحقيقي 3D' : 'Real 3D Garment Studio'}
+            {schemaContent?.title || (isArabic ? 'مجسم الهودي الحقيقي 3D' : 'Real 3D Garment Studio')}
           </h2>
 
           <p className="font-body text-xs sm:text-sm text-[#E2E6E8]/70 leading-relaxed">
-            {isArabic
+            {schemaContent?.description || (isArabic
               ? 'مجسم ثلاثي الأبعاد حقيقي مدمج لقصة الهودي البوكسي 520 جرام، مع إمكانية فحص تفاصيل النسيج والتدوير بزاوية 360 درجة بحرية.'
-              : 'Persistent repository 3D asset featuring the authentic 520 GSM boxy drop-shoulder cut, with live interactive 360° orbit controls and PBR studio lighting.'}
+              : 'Persistent repository 3D asset featuring the authentic 520 GSM boxy drop-shoulder cut, with live interactive 360° orbit controls and PBR studio lighting.')}
           </p>
         </div>
 
@@ -815,4 +825,3 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
 };
 
 export default Garment360Viewer;
-
