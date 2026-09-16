@@ -43,7 +43,6 @@ import {
   addToWishlistApi,
   removeFromWishlistApi,
 } from './lib/api';
-import { FALLBACK_PRODUCTS } from './lib/fallbackProducts';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('en');
@@ -84,6 +83,13 @@ export default function App() {
   // the new admin panel (/admin) reads from and writes to.
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
+  // BUG FIX: this used to silently substitute a hardcoded, stale fake catalog
+  // (different prices than the real database!) whenever the API failed, and
+  // separately merged in per-browser localStorage "admin edits" that could
+  // permanently override real database values on just one browser - neither
+  // of which the merchant or other customers would ever see. Now a load
+  // failure is shown honestly instead of quietly serving fabricated data.
+  const [productsError, setProductsError] = useState(false);
 
   // BUG FIX: reviews used to live only in each visitor's own localStorage. They now
   // come from the shared server database so every visitor sees the same reviews.
@@ -97,45 +103,19 @@ export default function App() {
       });
   }, []);
 
-  useEffect(() => {
+  const loadProducts = useCallback(() => {
+    setProductsLoading(true);
+    setProductsError(false);
     getProducts()
-      .then((list) => {
-        let storedEdits: Record<string, Partial<ProductItem>> = {};
-        try {
-          storedEdits = JSON.parse(localStorage.getItem('lahab_admin_product_edits') || '{}');
-        } catch {
-          // ignore
-        }
-
-        const baseList = list.length > 0 ? list : FALLBACK_PRODUCTS;
-        const merged = baseList.map((p) => {
-          const fallback = FALLBACK_PRODUCTS.find((f) => f.id === p.id);
-          const localEdit = storedEdits[p.id] || {};
-          return {
-            ...fallback,
-            ...p,
-            ...localEdit,
-            editorialImage: localEdit.editorialImage || p.editorialImage || fallback?.editorialImage,
-          };
-        });
-        setProducts(merged);
-      })
-      .catch(() => {
-        let storedEdits: Record<string, Partial<ProductItem>> = {};
-        try {
-          storedEdits = JSON.parse(localStorage.getItem('lahab_admin_product_edits') || '{}');
-        } catch {
-          // ignore
-        }
-        const merged = FALLBACK_PRODUCTS.map((f) => ({
-          ...f,
-          ...(storedEdits[f.id] || {}),
-        }));
-        setProducts(merged);
-      })
+      .then((list) => setProducts(list))
+      .catch(() => setProductsError(true))
       .finally(() => setProductsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    loadProducts();
     refreshReviews();
-  }, [refreshReviews]);
+  }, [loadProducts, refreshReviews]);
 
   // Handle URL hash scrolling (e.g. #authenticity, #lookbook) when page finishes loading or hash changes
   useEffect(() => {
@@ -320,6 +300,22 @@ export default function App() {
     );
   }
 
+  if (productsError) {
+    return (
+      <div className="min-h-screen bg-[#0D1929] flex flex-col items-center justify-center gap-6 px-6 text-center">
+        <Wordmark size="md" />
+        <p className="text-sm text-[#E2E6E8]/70 max-w-sm">
+          {isArabic
+            ? 'تعذّر تحميل المنتجات حاليًا. يرجى المحاولة تاني بعد لحظات.'
+            : "We couldn't load the collection right now. Please try again in a moment."}
+        </p>
+        <button onClick={loadProducts} className="btn-lahab-primary px-6 py-2.5 text-xs font-bold uppercase tracking-wider">
+          {isArabic ? 'إعادة المحاولة' : 'Retry'}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div
       dir={isArabic ? 'rtl' : 'ltr'}
@@ -409,21 +405,14 @@ export default function App() {
       {/* 2. Brand Story Section */}
       <BrandStory t={t.story} isArabic={isArabic} />
 
-      {/* 3. Feature 7: 360° Drape & Rotation Viewer */}
-      <Garment360Viewer
-        products={products}
-        language={language}
-        theme={theme}
-      />
-
-      {/* 4. Editorial Lookbook Section */}
+      {/* 3. Editorial Lookbook Section */}
       <EditorialLookbook
         t={t.editorial}
         language={language}
         onOpenSizingModal={() => setIsSizingOpen(true)}
       />
 
-      {/* 5. Product Showcase Section (With Monogram Launcher, Fit Guide, & Wishlist Save) */}
+      {/* 4. Product Showcase Section (With Monogram Launcher, Fit Guide, & Wishlist Save) */}
       <ProductShowcase
         products={products}
         reviews={reviews}
@@ -435,6 +424,13 @@ export default function App() {
         onToggleSave={handleToggleSave}
         t={t.showcase}
         language={language}
+      />
+
+      {/* 5. Feature 7: 360° Drape & Rotation Viewer (moved below Products per request) */}
+      <Garment360Viewer
+        products={products}
+        language={language}
+        theme={theme}
       />
 
       {/* Customer Product Reviews, Ratings & Comment Section */}
