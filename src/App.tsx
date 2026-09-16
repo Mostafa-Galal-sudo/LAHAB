@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, useScroll, useSpring } from 'motion/react';
+import { ShoppingBag } from 'lucide-react';
 import { ProductItem, CartItem, GarmentSize, WishlistItem, MonogramCustomization, ProductId, Theme, ProductReview } from './types';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
@@ -319,7 +320,9 @@ export default function App() {
   return (
     <div
       dir={isArabic ? 'rtl' : 'ltr'}
-      className="min-h-screen bg-[#0D1929] text-[#E2E6E8] flex flex-col font-body selection:bg-[#D8A065] selection:text-[#0D1929] transition-all"
+      className={`min-h-screen bg-[#0D1929] text-[#E2E6E8] flex flex-col font-body selection:bg-[#D8A065] selection:text-[#0D1929] transition-all ${
+        totalCartCount > 0 ? 'pb-20 lg:pb-0' : ''
+      }`}
     >
       {/* Interactive Flame Cursor component */}
       <FlameCursor theme={theme} />
@@ -465,6 +468,25 @@ export default function App() {
 
       {/* 10. Footer */}
       <Footer t={t.footer} />
+
+      {/* Sticky "View Bag" bar - mobile only, shown whenever the bag has items.
+          Desktop already has the bag button in the navbar; this just gives
+          mobile a persistent, thumb-reachable way back to checkout instead of
+          having to scroll back up to the navbar. */}
+      {totalCartCount > 0 && !isCartOpen && (
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 p-3 bg-[#0D1929]/95 backdrop-blur-md border-t border-[#D8A065]/30">
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="btn-lahab-primary w-full py-3.5 flex items-center justify-center gap-2.5 text-sm font-bold cursor-pointer"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span>{isArabic ? 'عرض السلة' : 'View Bag'}</span>
+            <span className="bg-[#0D1929] text-[#D8A065] px-2 py-0.5 text-xs font-mono font-bold rounded-xs">
+              {totalCartCount}
+            </span>
+          </button>
+        </div>
+      )}
 
       {/* Feature 9: Shopping Bag Slideover Drawer */}
       <CartDrawer

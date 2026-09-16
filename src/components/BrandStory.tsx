@@ -94,8 +94,11 @@ export const BrandStory: React.FC<BrandStoryProps> = ({ t }) => {
               </p>
             </div>
 
-            <p className="font-body text-lg text-[#E2E6E8] leading-relaxed max-w-2xl font-normal opacity-90">
+            <p className="font-body text-lg text-[#E2E6E8] leading-relaxed max-w-2xl font-normal opacity-90 hidden sm:block">
               {t.body}
+            </p>
+            <p className="font-body text-base text-[#E2E6E8] leading-relaxed max-w-2xl font-normal opacity-90 sm:hidden">
+              {t.bodyMobile}
             </p>
 
             {/* 3 Pillars with Staggered Entrance - hidden on mobile per request

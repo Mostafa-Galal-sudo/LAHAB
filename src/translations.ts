@@ -36,6 +36,7 @@ export interface TranslationSchema {
     badge: string;
     headline: string;
     body: string;
+    bodyMobile: string;
     feature1Title: string;
     feature1Desc: string;
     feature2Title: string;
@@ -177,6 +178,8 @@ export const translations: Record<Language, TranslationSchema> = {
       headline: 'THE STREET MEETS CENTURIES OF CALLIGRAPHIC DISCIPLINE.',
       body:
         'LAHAB was born from a singular conviction: heritage is not a museum artifact—it is an untamed, kinetic current alive in the night streets. We fuse the mathematical geometry of classical script and arabesque line discipline into drop-shoulder, heavyweight streetwear.',
+      bodyMobile:
+        'Heritage isn\u2019t a museum piece \u2014 it\u2019s a living current in the night streets, fused into heavyweight drop-shoulder streetwear.',
       feature1Title: 'NOVEL SILHOUETTES',
       feature1Desc: 'Boxy, drop-shoulder forms engineered with dense fabric drape.',
       feature2Title: 'TACTILE EMBROIDERY',
@@ -348,6 +351,8 @@ export const translations: Record<Language, TranslationSchema> = {
       headline: 'حين يلتقي نبض الشارع بقرون من انضباط فن الخط.',
       body:
         'ولدت علامة لَهَب من قناعة راسخة: الثقافة والأصالة ليست أثرًا في متحف، بل تيار جامح ينبض بالحياة في شوارع الليل. نمزج الهندسة الرياضية للخط الكلاسيكي وزخارف الأرابيسك مع قصات أزياء الشارع الثقيلة والواسعة.',
+      bodyMobile:
+        'الأصالة مش أثر في متحف، هي نبض حي في شوارع الليل — بندمجها في قصات أزياء شارع ثقيلة وعريضة.',
       feature1Title: 'قصات معمارية مبتكرة',
       feature1Desc: 'تصاميم عريضة بأكتاف ساقطة تمنح القماش ثقلًا وانسيابية فريدة.',
       feature2Title: 'تطريز ملموس وعالي الكثافة',
