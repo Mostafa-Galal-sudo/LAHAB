@@ -1,0 +1,34 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lahab-streetwear",
+  "compatibility_date": "2026-09-01",
+  "main": "./worker/index.ts",
+
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    // Only /api/* requests invoke the Worker; everything else (the storefront
+    // and the /ctrl-xxxx admin page) is served directly as a static asset -
+    // unlimited and free, per Cloudflare's Workers static assets billing.
+    "run_worker_first": ["/api/*"]
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "lahab-db",
+      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+    }
+  ],
+
+  // Plain (non-secret) vars - safe to commit to git.
+  "vars": {
+    "PBKDF2_ITERATIONS": "100000",
+    "EMAIL_FROM": "LΛHΛB Atelier <onboarding@resend.dev>"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}

@@ -1,0 +1,19 @@
+# Cloudflare Workers doesn't use .env/dotenv. For LOCAL DEVELOPMENT ONLY,
+# copy this file to `.dev.vars` (already gitignored) and fill in real values.
+# `wrangler dev` / `vite dev` load `.dev.vars` automatically.
+#
+# For PRODUCTION, never put secrets in a file at all - set them with:
+#   npx wrangler secret put ADMIN_JWT_SECRET
+#   npx wrangler secret put RESEND_API_KEY
+# Non-secret config (PBKDF2_ITERATIONS, EMAIL_FROM) lives in wrangler.jsonc's
+# `vars` block instead, since it's safe to commit.
+
+# Required. Signs the admin session JWT. Generate one with:
+#   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+ADMIN_JWT_SECRET=
+
+# Optional. Without this, contact-form and stock-alert emails are logged to
+# the console instead of sent (emailStatus: "not_configured") - the site
+# still works, it just won't actually email the atelier.
+# Get a free key at https://resend.com after verifying a sending domain.
+RESEND_API_KEY=
