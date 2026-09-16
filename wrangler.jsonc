@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "lahab-streetwear",
+  "name": "lahab",
   "compatibility_date": "2026-09-01",
   "main": "./worker/index.ts",
 
@@ -32,3 +32,4 @@
     "enabled": true
   }
 }
+
