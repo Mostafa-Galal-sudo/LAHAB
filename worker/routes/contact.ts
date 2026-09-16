@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { AppEnv } from '../hono';
 import { sendEmail } from '../email';
 import { rateLimit } from '../rateLimit';
+import { requireAdmin } from '../auth';
 
 export const contactRouter = new Hono<AppEnv>();
 
@@ -298,7 +299,7 @@ contactRouter.post(
 );
 
 // GET /api/inquiries — Admin inquiries & order list
-contactRouter.get('/inquiries', async (c) => {
+contactRouter.get('/inquiries', requireAdmin, async (c) => {
   try {
     const { results } = await c.env.DB.prepare('SELECT * FROM inquiries ORDER BY timestamp DESC LIMIT 100').all();
     return c.json({ success: true, inquiries: results });
@@ -306,4 +307,3 @@ contactRouter.get('/inquiries', async (c) => {
     return c.json({ success: false, inquiries: [] });
   }
 });
-

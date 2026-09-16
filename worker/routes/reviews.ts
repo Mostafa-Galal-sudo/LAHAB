@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../hono';
 import { rateLimit } from '../rateLimit';
+import { requireAdmin } from '../auth';
 
 export const reviewsRouter = new Hono<AppEnv>();
 
@@ -134,9 +135,8 @@ reviewsRouter.post('/:id/like', async (c) => {
 });
 
 // DELETE /api/reviews/:id — admin management
-reviewsRouter.delete('/:id', async (c) => {
+reviewsRouter.delete('/:id', requireAdmin, async (c) => {
   const id = c.req.param('id');
   await c.env.DB.prepare('DELETE FROM reviews WHERE id = ?').bind(id).run();
   return c.json({ success: true });
 });
-

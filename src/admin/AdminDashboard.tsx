@@ -54,33 +54,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ username, onLogg
   };
 
   const handleCreate = async (payload: any) => {
-    try {
-      await createProduct(payload);
-    } catch (err) {
-      console.warn('[LAHAB Admin] Direct DB create failed, storing local fallback edit:', err);
-    }
-    try {
-      const stored = JSON.parse(localStorage.getItem('lahab_admin_product_edits') || '{}');
-      const newId = payload.id || `piece-${Date.now()}`;
-      stored[newId] = payload;
-      localStorage.setItem('lahab_admin_product_edits', JSON.stringify(stored));
-    } catch {}
+    await createProduct(payload);
     setNotice('Piece created successfully.');
     setView({ mode: 'list' });
     await loadData();
   };
 
   const handleUpdate = async (id: string, payload: any) => {
-    try {
-      await updateProduct(id, payload);
-    } catch (err) {
-      console.warn('[LAHAB Admin] Direct DB update failed, storing local fallback edit:', err);
-    }
-    try {
-      const stored = JSON.parse(localStorage.getItem('lahab_admin_product_edits') || '{}');
-      stored[id] = { ...(stored[id] || {}), ...payload };
-      localStorage.setItem('lahab_admin_product_edits', JSON.stringify(stored));
-    } catch {}
+    await updateProduct(id, payload);
     setNotice('Piece updated successfully.');
     setView({ mode: 'list' });
     await loadData();
@@ -382,4 +363,3 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ username, onLogg
 };
 
 export default AdminDashboard;
-
