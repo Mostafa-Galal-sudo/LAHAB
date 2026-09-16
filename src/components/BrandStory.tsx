@@ -1,4 +1,3 @@
-tsx
 import React from 'react';
 import { motion } from 'motion/react';
 import Wordmark from './Wordmark';
@@ -8,6 +7,29 @@ interface BrandStoryProps {
   t: TranslationSchema['story'];
   isArabic: boolean;
 }
+
+const pillarsContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.18,
+      delayChildren: 0.12,
+    },
+  },
+};
+
+const pillarItem = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.7,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
 
 export const BrandStory: React.FC<BrandStoryProps> = ({ t }) => {
   return (
@@ -56,6 +78,65 @@ export const BrandStory: React.FC<BrandStoryProps> = ({ t }) => {
                 <span className="border border-[#D8A065]/40 px-2 py-0.5 bg-[#0D1929]/80">GIZA 86 COTTON</span>
               </div>
             </div>
+          </motion.div>
+
+          {/* Narrative Column */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.2 }}
+            transition={{ duration: 0.85, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-7 space-y-8"
+          >
+            <div className="space-y-4">
+              <p className="font-heading text-3xl sm:text-4xl text-[#D8A065] tracking-wide leading-snug uppercase">
+                {t.headline}
+              </p>
+            </div>
+
+            <p className="font-body text-lg text-[#E2E6E8] leading-relaxed max-w-2xl font-normal opacity-90 hidden sm:block">
+              {t.body}
+            </p>
+            <p className="font-body text-base text-[#E2E6E8] leading-relaxed max-w-2xl font-normal opacity-90 sm:hidden">
+              {t.bodyMobile}
+            </p>
+
+            {/* 3 Pillars with Staggered Entrance - hidden on mobile per request
+                (shortens the section on phones), unchanged on desktop */}
+            <motion.div
+              variants={pillarsContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: false, amount: 0.2 }}
+              className="hidden sm:grid pt-6 grid-cols-1 sm:grid-cols-3 gap-6 border-t border-[#E2E6E8]/20"
+            >
+              <motion.div variants={pillarItem} className="p-4 bg-[#132238]/40 border border-[#E2E6E8]/10 card-hover-alive">
+                <span className="block font-heading text-xs sm:text-sm text-[#D8A065] tracking-wider mb-2">
+                  {t.feature1Title}
+                </span>
+                <p className="font-body text-xs text-[#E2E6E8]/80 leading-relaxed">
+                  {t.feature1Desc}
+                </p>
+              </motion.div>
+
+              <motion.div variants={pillarItem} className="p-4 bg-[#132238]/40 border border-[#E2E6E8]/10 card-hover-alive">
+                <span className="block font-heading text-xs sm:text-sm text-[#D8A065] tracking-wider mb-2">
+                  {t.feature2Title}
+                </span>
+                <p className="font-body text-xs text-[#E2E6E8]/80 leading-relaxed">
+                  {t.feature2Desc}
+                </p>
+              </motion.div>
+
+              <motion.div variants={pillarItem} className="p-4 bg-[#132238]/40 border border-[#E2E6E8]/10 card-hover-alive">
+                <span className="block font-heading text-xs sm:text-sm text-[#D8A065] tracking-wider mb-2">
+                  {t.feature3Title}
+                </span>
+                <p className="font-body text-xs text-[#E2E6E8]/80 leading-relaxed">
+                  {t.feature3Desc}
+                </p>
+              </motion.div>
+            </motion.div>
           </motion.div>
         </div>
       </div>
