@@ -49,23 +49,22 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Hide native browser mouse cursor on non-touch devices so ONLY the custom flame cursor is shown */
+/* Hide the native cursor only while the storefront flame cursor is mounted. */
 @media (pointer: fine) {
-  html,
-  body {
+  html.flame-cursor-active,
+  html.flame-cursor-active body {
     cursor: none !important;
   }
 
-  /* Ensure interactive inputs and buttons in admin keep functional system pointers */
-  a,
-  button,
-  input,
-  textarea,
-  select,
-  label,
-  summary,
-  [role="button"],
-  .cursor-pointer {
+  html.flame-cursor-active a,
+  html.flame-cursor-active button,
+  html.flame-cursor-active input,
+  html.flame-cursor-active textarea,
+  html.flame-cursor-active select,
+  html.flame-cursor-active label,
+  html.flame-cursor-active summary,
+  html.flame-cursor-active [role="button"],
+  html.flame-cursor-active .cursor-pointer {
     cursor: pointer !important;
   }
 }

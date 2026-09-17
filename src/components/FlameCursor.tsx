@@ -35,6 +35,12 @@ export const FlameCursor: React.FC<FlameCursorProps> = ({ theme = 'navy' }) => {
   };
 
   useEffect(() => {
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+    document.documentElement.classList.add('flame-cursor-active');
+    return () => document.documentElement.classList.remove('flame-cursor-active');
+  }, []);
+
+  useEffect(() => {
     // Check if pointer is coarse (touchscreen)
     const isTouch = window.matchMedia('(pointer: coarse)').matches;
     if (isTouch) return;
