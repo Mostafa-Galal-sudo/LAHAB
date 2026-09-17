@@ -1,10 +1,11 @@
-import {StrictMode} from 'react';
+import {lazy, StrictMode, Suspense} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
-import AdminApp from './admin/AdminApp.tsx';
-import EditorPreview from './pageBuilder/EditorPreview.tsx';
 import { ADMIN_PATH_SLUG } from '../shared/adminSlug';
 import './index.css';
+
+const AdminApp = lazy(() => import('./admin/AdminApp.tsx'));
+const EditorPreview = lazy(() => import('./pageBuilder/EditorPreview.tsx'));
 
 // No client-side router library is used - the storefront and the admin panel
 // are the only two "pages", so a simple path check is enough. The admin path
@@ -15,6 +16,8 @@ const isEditorPreviewRoute = window.location.pathname === '/editor-preview';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {isEditorPreviewRoute ? <EditorPreview /> : isAdminRoute ? <AdminApp /> : <App />}
+    <Suspense fallback={<div className="min-h-screen bg-[#0D1929]" aria-label="Loading" />}>
+      {isEditorPreviewRoute ? <EditorPreview /> : isAdminRoute ? <AdminApp /> : <App />}
+    </Suspense>
   </StrictMode>,
 );

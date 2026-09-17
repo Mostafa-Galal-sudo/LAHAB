@@ -13,7 +13,7 @@ import {
   type PageRevisionSummary,
 } from '../lib/api';
 import type { Language } from '../translations';
-import type { EditorToPreviewMessage, EditorViewport, PreviewToEditorMessage } from '../pageBuilder/editorMessages';
+import type { EditorPreviewBridge, EditorToPreviewMessage, EditorViewport, PreviewToEditorMessage } from '../pageBuilder/editorMessages';
 import { collectEditableLeaves, createSection, deepClone, getAtPath, moveInArray, nestedArrays, regenerateIds, setAtPath, type EditorPath } from './pageEditorUtils';
 import AssetLibrary from './AssetLibrary';
 
@@ -105,17 +105,28 @@ const SiteEditor: React.FC = () => {
 
   useEffect(() => { postPreview(); }, [postPreview]);
   useEffect(() => {
+    const editorWindow = window as Window & { __LAHAB_EDITOR_PREVIEW__?: EditorPreviewBridge };
+    editorWindow.__LAHAB_EDITOR_PREVIEW__ = {
+      selectSection: (sectionId) => {
+        if (!page?.sections.some((section) => section.id === sectionId)) return;
+        setSelectedId(sectionId);
+        setPreviewOverride(null);
+      },
+    };
     const onMessage = (event: MessageEvent<PreviewToEditorMessage>) => {
-      if (event.origin !== window.location.origin) return;
       if (event.data?.type === 'lahab:preview-ready') postPreview();
       if (event.data?.type === 'lahab:preview-select') {
+        if (!page?.sections.some((section) => section.id === event.data.sectionId)) return;
         setSelectedId(event.data.sectionId);
         setPreviewOverride(null);
       }
     };
     window.addEventListener('message', onMessage);
-    return () => window.removeEventListener('message', onMessage);
-  }, [postPreview]);
+    return () => {
+      window.removeEventListener('message', onMessage);
+      delete editorWindow.__LAHAB_EDITOR_PREVIEW__;
+    };
+  }, [page?.sections, postPreview]);
 
   const save = async () => {
     if (!page) return false;
@@ -270,7 +281,7 @@ const SiteEditor: React.FC = () => {
             {page.sections.map((section, index) => (
               <div key={section.id} draggable onDragStart={() => setDragIndex(index)} onDragOver={(event) => event.preventDefault()} onDrop={() => { if (dragIndex !== null && dragIndex !== index) moveSection(dragIndex, index); setDragIndex(null); }} className={`group border ${selectedId === section.id ? 'border-[#D8A065] bg-[#D8A065]/10' : 'border-[#E2E6E8]/10 bg-[#132238]/40'}`}>
                 <button onClick={() => { setSelectedId(section.id); setPreviewOverride(null); }} className="w-full flex items-center gap-2 p-2 text-left"><GripVertical className="w-3.5 h-3.5 text-[#E2E6E8]/30" /><span className="flex-1 text-[11px] font-heading truncate">{section.type}</span><span className="text-[9px] font-mono text-[#E2E6E8]/35">{index + 1}</span></button>
-                <div className="hidden group-hover:flex border-t border-[#E2E6E8]/10 justify-end p-1 gap-1">
+                <div className="hidden group-hover:flex group-focus-within:flex border-t border-[#E2E6E8]/10 justify-end p-1 gap-1">
                   <button aria-label={section.visible ? 'Hide section' : 'Show section'} onClick={() => commit(setAtPath(page, ['sections', index, 'visible'], !section.visible))} className="p-1">{section.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}</button>
                   <button aria-label="Move section up" disabled={index === 0} onClick={() => moveSection(index, index - 1)} className="p-1 disabled:opacity-20"><ChevronUp className="w-3.5 h-3.5" /></button>
                   <button aria-label="Move section down" disabled={index === page.sections.length - 1} onClick={() => moveSection(index, index + 1)} className="p-1 disabled:opacity-20"><ChevronDown className="w-3.5 h-3.5" /></button>

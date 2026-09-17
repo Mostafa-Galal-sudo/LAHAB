@@ -28,5 +28,8 @@ export interface StorefrontContext {
   onReviewsChanged: () => void;
   onScrollToProducts: () => void;
   onShopLook: (productId: ProductId, size: GarmentSize) => void;
+  /** Present only inside the isolated editor iframe. */
+  editorPreview?: {
+    onSelectSection: (sectionId: string, path: string) => void;
+  };
 }
-

@@ -206,8 +206,11 @@ function checkAction(value: unknown, path: string, errors: string[]) {
     checkId(value.sectionId, `${path}.sectionId`, errors);
   } else if (value.type === 'link') {
     checkKeys(value, ['type', 'href', 'target'], ['type', 'href', 'target'], path, errors);
-    if (checkString(value.href, `${path}.href`, errors) && /^(javascript|data):/i.test(value.href.trim())) {
-      errors.push(`${path}.href uses a forbidden URL scheme`);
+    if (checkString(value.href, `${path}.href`, errors)) {
+      const href = value.href.trim();
+      if (!/^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i.test(href)) {
+        errors.push(`${path}.href must use https, http, mailto, tel, a root-relative path, or a fragment`);
+      }
     }
     checkEnum(value.target, ['self', 'blank'], `${path}.target`, errors);
   } else if (value.type === 'openSizeGuide') {
@@ -445,6 +448,8 @@ function checkSection(section: unknown, path: string, errors: string[]) {
       if (!content) break;
       checkLocalizedFields(content, ['badge', 'title', 'description', 'responseTime'], contentPath, errors);
       ['email', 'phoneDisplay', 'whatsappNumber'].forEach((field) => checkString(content[field], `${contentPath}.${field}`, errors));
+      if (typeof content.email === 'string' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(content.email)) errors.push(`${contentPath}.email must be a valid email address`);
+      if (typeof content.whatsappNumber === 'string' && !/^\d{7,20}$/.test(content.whatsappNumber)) errors.push(`${contentPath}.whatsappNumber must contain digits only`);
       checkArray(content.inquiryCategories, `${contentPath}.inquiryCategories`, errors, (item, itemPath, itemErrors) => {
         const obj = checkContentObject(item, ['id', 'value', 'label'], ['id', 'value', 'label'], itemPath, itemErrors);
         if (!obj) return;

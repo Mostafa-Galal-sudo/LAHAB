@@ -29,6 +29,33 @@ const RULES: Record<AssetKind, { max: number; extensions: string[]; mimes: strin
   document: { max: 20 * 1024 * 1024, extensions: ['pdf'], mimes: ['application/pdf'] },
 };
 
+function ascii(bytes: Uint8Array, start = 0, end = bytes.length) {
+  return new TextDecoder('utf-8', { fatal: false, ignoreBOM: false }).decode(bytes.slice(start, end));
+}
+
+async function hasValidSignature(file: File, extension: string): Promise<boolean> {
+  const bytes = new Uint8Array(await file.slice(0, 4096).arrayBuffer());
+  const starts = (...values: number[]) => values.every((value, index) => bytes[index] === value);
+  switch (extension) {
+    case 'jpg':
+    case 'jpeg': return starts(0xff, 0xd8, 0xff);
+    case 'png': return starts(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
+    case 'gif': return ascii(bytes, 0, 6) === 'GIF87a' || ascii(bytes, 0, 6) === 'GIF89a';
+    case 'webp': return ascii(bytes, 0, 4) === 'RIFF' && ascii(bytes, 8, 12) === 'WEBP';
+    case 'avif': return ascii(bytes, 4, 12).startsWith('ftyp') && /avif|avis/.test(ascii(bytes, 8, 32));
+    case 'obj': {
+      if (bytes.includes(0)) return false;
+      const source = ascii(bytes);
+      return /(^|\r?\n)\s*(v|o|g)\s+/m.test(source);
+    }
+    case 'glb': return ascii(bytes, 0, 4) === 'glTF';
+    case 'pdf': return ascii(bytes, 0, 5) === '%PDF-';
+    case 'mp4': return ascii(bytes, 4, 8) === 'ftyp';
+    case 'webm': return starts(0x1a, 0x45, 0xdf, 0xa3);
+    default: return false;
+  }
+}
+
 function toAsset(row: AssetRow) {
   let metadata: Record<string, unknown> = {};
   try { metadata = JSON.parse(row.metadataJson); } catch { /* legacy metadata */ }
@@ -90,6 +117,12 @@ adminAssetsRouter.post('/', async (c) => {
   }
   if (extension === 'glb' && file.type !== 'model/gltf-binary' && file.type !== 'application/octet-stream') {
     return c.json({ success: false, error: 'GLB files require a binary glTF MIME type.' }, 415);
+  }
+  if (extension === 'obj' && file.type !== 'model/obj' && file.type !== 'text/plain') {
+    return c.json({ success: false, error: 'OBJ files require a model/obj or text/plain MIME type.' }, 415);
+  }
+  if (!(await hasValidSignature(file, extension))) {
+    return c.json({ success: false, error: `File contents do not match the .${extension} format.` }, 415);
   }
 
   const id = `asset-${crypto.randomUUID()}`;

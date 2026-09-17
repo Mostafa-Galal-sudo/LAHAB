@@ -12,6 +12,10 @@
     "db:migrate:remote": "wrangler d1 migrations apply lahab-db --remote",
     "seed:admin:local": "node scripts/seed-admin.mjs --local",
     "seed:admin:remote": "node scripts/seed-admin.mjs --remote",
+    "test:pages": "node scripts/verify-page-lifecycle.mjs",
+    "test:orders": "node scripts/verify-order-contract.mjs",
+    "test:assets": "node scripts/verify-assets.mjs",
+    "test:asset-page": "node scripts/verify-asset-page-integration.mjs",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.worker.json"
   },
@@ -39,4 +43,3 @@
     "wrangler": "^4.130.0"
   }
 }
-

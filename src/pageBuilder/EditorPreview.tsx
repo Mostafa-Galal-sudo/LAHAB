@@ -6,9 +6,25 @@ import { FALLBACK_PRODUCTS } from '../lib/fallbackProducts';
 import type { ProductItem, ProductReview } from '../types';
 import PageRenderer from './PageRenderer';
 import type { StorefrontContext } from './StorefrontContext';
-import { isEditorMessage, type PreviewToEditorMessage } from './editorMessages';
+import { isEditorMessage, type EditorPreviewBridge, type PreviewToEditorMessage } from './editorMessages';
 
-const notifyParent = (message: PreviewToEditorMessage) => window.parent.postMessage(message, window.location.origin);
+// Sandboxed iframe origins are browser-dependent during local development.
+// The parent validates both event.source and event.origin, so using `*` here
+// avoids dropping legitimate selection events without widening trust.
+const notifyParent = (message: PreviewToEditorMessage) => window.parent.postMessage(message, '*');
+
+const selectInParent = (sectionId: string, path: string) => {
+  try {
+    const parent = window.parent as Window & { __LAHAB_EDITOR_PREVIEW__?: EditorPreviewBridge };
+    if (parent.__LAHAB_EDITOR_PREVIEW__) {
+      parent.__LAHAB_EDITOR_PREVIEW__.selectSection(sectionId, path);
+      return;
+    }
+  } catch {
+    // Cross-origin/sandboxed deployments fall back to the typed message.
+  }
+  notifyParent({ type: 'lahab:preview-select', sectionId, path });
+};
 
 /** Isolated, non-transactional preview. It never fetches drafts and cannot mutate commerce state. */
 const EditorPreview: React.FC = () => {
@@ -44,16 +60,12 @@ const EditorPreview: React.FC = () => {
     };
     const blockTransactions = (event: Event) => event.preventDefault();
     const selectSection = (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
+      const target = event.target instanceof Element ? event.target : null;
       const section = target?.closest<HTMLElement>('[data-editor-section-id]');
       if (!section) return;
       event.preventDefault();
       event.stopPropagation();
-      notifyParent({
-        type: 'lahab:preview-select',
-        sectionId: section.dataset.editorSectionId!,
-        path: section.dataset.editorPath ?? '',
-      });
+      selectInParent(section.dataset.editorSectionId!, section.dataset.editorPath ?? '');
     };
     window.addEventListener('message', onMessage);
     document.addEventListener('submit', blockTransactions, true);
@@ -84,6 +96,9 @@ const EditorPreview: React.FC = () => {
     onReviewsChanged: () => undefined,
     onScrollToProducts: () => undefined,
     onShopLook: () => undefined,
+    editorPreview: {
+      onSelectSection: selectInParent,
+    },
   }), [language, page?.settings.defaultTheme, products, reviews]);
 
   if (!page) {

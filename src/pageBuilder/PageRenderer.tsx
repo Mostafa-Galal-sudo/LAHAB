@@ -24,6 +24,11 @@ const PageRenderer: React.FC<PageRendererProps> = ({ page, context }) => {
           data-editor-section-id={section.id}
           data-editor-path={`sections.${page.sections.indexOf(section)}`}
           style={{ display: 'contents' }}
+          onClickCapture={context.editorPreview ? (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            context.editorPreview!.onSelectSection(section.id, `sections.${page.sections.indexOf(section)}`);
+          } : undefined}
         >
           <SectionRenderer section={section} context={context} />
         </div>
