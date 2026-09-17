@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { ProductItem, Theme } from '../types';
 import { Language } from '../translations';
 import type { ModelPresentation } from '../../shared/pageSchema';
@@ -47,6 +48,7 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
   schemaContent,
 }) => {
   const isArabic = language === 'ar';
+  const modelPresentation = schemaContent?.model;
   const selectedProduct = products[0] || {
     id: 'hoodie-01',
     weight: '520 GSM FLEECE',
@@ -124,6 +126,53 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
 
   const currentDescriptor = getAngleDescriptor(angle);
 
+  const mountObject = useCallback((
+    obj: THREE.Object3D,
+    targetGroup: THREE.Group,
+    meta: Omit<LoadedModelMeta, 'vertexCount' | 'polyCount'>,
+    preserveAuthoredMaterials: boolean
+  ) => {
+    let vertexCount = 0;
+    let polyCount = 0;
+    const fallbackColor = modelPresentation?.materialColor ?? '#0F1C2D';
+    const fleeceMaterial = new THREE.MeshStandardMaterial({ color: fallbackColor, roughness: 0.88, metalness: 0.12, bumpScale: 0.05 });
+    obj.traverse((child) => {
+      if (!(child as THREE.Mesh).isMesh) return;
+      const mesh = child as THREE.Mesh;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      if (!preserveAuthoredMaterials) mesh.material = fleeceMaterial;
+      else if (modelPresentation?.materialColor) {
+        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        mesh.material = materials.map((material) => {
+          if (!(material instanceof THREE.MeshStandardMaterial) || material.map) return material;
+          const clone = material.clone();
+          clone.color.set(modelPresentation.materialColor!);
+          return clone;
+        });
+      }
+      if (mesh.geometry) {
+        mesh.geometry.computeVertexNormals();
+        const positions = mesh.geometry.attributes.position;
+        if (positions) vertexCount += positions.count;
+        polyCount += mesh.geometry.index ? mesh.geometry.index.count / 3 : (positions?.count ?? 0) / 3;
+      }
+    });
+    const box = new THREE.Box3().setFromObject(obj);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const normalized = 2.4 / (Math.max(size.x, size.y, size.z) || 1);
+    const scale = modelPresentation?.scale ?? [1, 1, 1];
+    const position = modelPresentation?.position ?? [0, 0, 0];
+    const rotation = modelPresentation?.rotation ?? [0, 0, 0];
+    obj.scale.set(normalized * scale[0], normalized * scale[1], normalized * scale[2]);
+    obj.position.set(-center.x * normalized + position[0], -center.y * normalized - 0.05 + position[1], -center.z * normalized + position[2]);
+    obj.rotation.set(rotation[0], rotation[1], rotation[2]);
+    targetGroup.clear();
+    targetGroup.add(obj);
+    setLoadedModelMeta({ ...meta, vertexCount: Math.round(vertexCount), polyCount: Math.round(polyCount) });
+  }, [modelPresentation]);
+
   // Helper to parse and mount an OBJ string into a specified Three.js Group
   const parseAndMountObj = useCallback((
     objText: string,
@@ -134,37 +183,6 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
   ) => {
     const loader = new OBJLoader();
     const obj = loader.parse(objText);
-
-    let vertexCount = 0;
-    let polyCount = 0;
-
-    // Apply authentic heavyweight matte fleece material with realistic PBR shading
-    const fleeceMaterial = new THREE.MeshStandardMaterial({
-      color: 0x0f1c2d, // Midnight Navy Heavyweight Fleece
-      roughness: 0.88,
-      metalness: 0.12,
-      bumpScale: 0.05,
-    });
-
-    obj.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        const mesh = child as THREE.Mesh;
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        mesh.material = fleeceMaterial;
-
-        if (mesh.geometry) {
-          mesh.geometry.computeVertexNormals();
-          const posAttr = mesh.geometry.attributes.position;
-          if (posAttr) vertexCount += posAttr.count;
-          if (mesh.geometry.index) {
-            polyCount += mesh.geometry.index.count / 3;
-          } else if (posAttr) {
-            polyCount += posAttr.count / 3;
-          }
-        }
-      }
-    });
 
     // Add gold embroidery emblem highlight onto the chest of the persistent model
     if (isPersistent) {
@@ -179,27 +197,8 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
       obj.add(emblemMesh);
     }
 
-    // Compute Bounding Box, center and normalize scale to fit pedestal
-    const box = new THREE.Box3().setFromObject(obj);
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z) || 1;
-    const targetScale = 2.4 / maxDim;
-
-    obj.scale.set(targetScale, targetScale, targetScale);
-    obj.position.set(-center.x * targetScale, -center.y * targetScale - 0.05, -center.z * targetScale);
-
-    targetGroup.clear();
-    targetGroup.add(obj);
-
-    setLoadedModelMeta({
-      fileName,
-      fileSize: `${fileSizeKB} KB`,
-      vertexCount: Math.round(vertexCount),
-      polyCount: Math.round(polyCount),
-      isPersistentAsset: isPersistent,
-    });
-  }, []);
+    mountObject(obj, targetGroup, { fileName, fileSize: `${fileSizeKB} KB`, isPersistentAsset: isPersistent }, false);
+  }, [mountObject]);
 
   // Function to load the persistent repository 3D model asset
   const loadPersistent3DAsset = useCallback(async () => {
@@ -210,16 +209,18 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
       if (!response.ok) {
         throw new Error(`Failed to load persistent model (${response.status})`);
       }
-      const text = await response.text();
-
       if (persistentModelGroupRef.current) {
-        parseAndMountObj(
-          text,
-          persistentModelGroupRef.current,
-          modelUrl.split('/').pop() || 'lahab_drop01_hoodie.obj',
-          '34.8',
-          true
-        );
+        const fileName = modelUrl.split('/').pop() || 'lahab_drop01_hoodie.obj';
+        const sizeKB = ((Number(response.headers.get('content-length')) || 0) / 1024).toFixed(1);
+        if (modelPresentation?.format === 'glb') {
+          const buffer = await response.arrayBuffer();
+          const gltf = await new Promise<Awaited<ReturnType<GLTFLoader['parseAsync']>>>((resolve, reject) => {
+            new GLTFLoader().parse(buffer, '', resolve, reject);
+          });
+          mountObject(gltf.scene, persistentModelGroupRef.current, { fileName, fileSize: `${sizeKB} KB`, isPersistentAsset: true }, true);
+        } else {
+          parseAndMountObj(await response.text(), persistentModelGroupRef.current, fileName, sizeKB || '34.8', true);
+        }
         persistentModelGroupRef.current.visible = true;
       }
       if (defaultGeometryGroupRef.current) {
@@ -231,13 +232,27 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
     } catch (err: any) {
       console.warn('Persistent 3D asset fetch fallback to studio mannequin:', err);
       // Fallback gracefully to architectural mannequin
+      if (defaultGeometryGroupRef.current && (schemaContent?.model.assetId !== 'asset-model-hoodie-obj')) {
+        try {
+          const fallback = await fetch('/assets/models/lahab_drop01_hoodie.obj');
+          if (fallback.ok && persistentModelGroupRef.current) {
+            parseAndMountObj(await fallback.text(), persistentModelGroupRef.current, 'lahab_drop01_hoodie.obj', '34.8', true);
+            persistentModelGroupRef.current.visible = true;
+            defaultGeometryGroupRef.current.visible = false;
+            setActiveModelMode('persistent');
+            setLoadError('Selected model unavailable; showing bundled compatibility model.');
+            setIsModelLoading(false);
+            return;
+          }
+        } catch { /* use mannequin */ }
+      }
       if (defaultGeometryGroupRef.current) {
         defaultGeometryGroupRef.current.visible = true;
       }
       setActiveModelMode('architectural');
       setIsModelLoading(false);
     }
-  }, [modelUrl, parseAndMountObj]);
+  }, [modelPresentation?.format, modelUrl, mountObject, parseAndMountObj, schemaContent?.model]);
 
   // Initialize Three.js Scene
   useEffect(() => {
@@ -249,12 +264,13 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
 
     // 1. Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a1422);
+    scene.background = new THREE.Color(modelPresentation?.backgroundColor ?? '#0A1422');
     sceneRef.current = scene;
 
     // 2. Camera
     const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
-    camera.position.set(0, 0.4, 4.2);
+    const cameraPosition = modelPresentation?.cameraPosition ?? [0, 0.4, 4.2];
+    camera.position.set(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
     cameraRef.current = camera;
 
     // 3. Renderer with antialiasing and shadow support
@@ -269,11 +285,13 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
     container.appendChild(renderer.domElement);
 
     // 4. Studio Lighting System
-    const ambientLight = new THREE.AmbientLight(0xd8a065, 0.85); // Warm gold ambient
+    const preset = modelPresentation?.lightingPreset ?? 'studio';
+    const levels = preset === 'dramatic' ? [0.35, 3, 2.4, 0.25] : preset === 'softbox' ? [1.2, 1.45, 0.9, 1] : preset === 'neutral' ? [1, 1.5, 1.1, 0.8] : [0.85, 2.2, 1.8, 0.7];
+    const ambientLight = new THREE.AmbientLight(preset === 'neutral' ? 0xffffff : 0xd8a065, levels[0]);
     scene.add(ambientLight);
 
     // Key Light (warm studio white)
-    const keyLight = new THREE.DirectionalLight(0xfff5e6, 2.2);
+    const keyLight = new THREE.DirectionalLight(0xfff5e6, levels[1]);
     keyLight.position.set(3, 5, 4);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.width = 1024;
@@ -281,12 +299,12 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
     scene.add(keyLight);
 
     // Rim / Contour Light (cool architectural highlight)
-    const rimLight = new THREE.DirectionalLight(0x7ea8d6, 1.8);
+    const rimLight = new THREE.DirectionalLight(0x7ea8d6, levels[2]);
     rimLight.position.set(-4, 3, -3);
     scene.add(rimLight);
 
     // Bottom Fill Light
-    const fillLight = new THREE.DirectionalLight(0xd8a065, 0.7);
+    const fillLight = new THREE.DirectionalLight(0xd8a065, levels[3]);
     fillLight.position.set(0, -3, 2);
     scene.add(fillLight);
 
@@ -419,15 +437,15 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
       resizeObserver.disconnect();
       renderer.dispose();
     };
-  }, [loadPersistent3DAsset]);
+  }, [loadPersistent3DAsset, modelPresentation]);
 
   // Synchronize 3D scene background with active theme
   useEffect(() => {
     if (sceneRef.current) {
-      const bgColor = theme === 'desert' ? 0xE9E2D2 : 0x0a1422;
+      const bgColor = modelPresentation?.backgroundColor ?? (theme === 'desert' ? 0xE9E2D2 : 0x0a1422);
       sceneRef.current.background = new THREE.Color(bgColor);
     }
-  }, [theme]);
+  }, [modelPresentation?.backgroundColor, theme]);
 
   // Auto Orbit Ticker using requestAnimationFrame logic
   useEffect(() => {
@@ -439,7 +457,8 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
     const loop = (currentTime: number) => {
       const delta = currentTime - lastTime;
       if (delta >= 40) {
-        const next = (angleRef.current + 1) % 360;
+        const speed = Math.max(0.01, Math.abs(modelPresentation?.autoRotateSpeed ?? 1));
+        const next = (angleRef.current + speed) % 360;
         updateAngle(next);
         lastTime = currentTime;
       }
@@ -448,7 +467,7 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
 
     frameId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(frameId);
-  }, [isAutoOrbit, updateAngle]);
+  }, [isAutoOrbit, modelPresentation?.autoRotateSpeed, updateAngle]);
 
   // Switch back to the persistent drop 01 hoodie model
   const handleSwitchToPersistent = () => {

@@ -141,7 +141,7 @@ export const INITIAL_HOMEPAGE_DOCUMENT: PageDocument = {
         title: { en: 'Real 3D Garment Studio', ar: 'مجسم الهودي الحقيقي 3D' },
         description: { en: 'Persistent repository 3D asset featuring the authentic 520 GSM boxy drop-shoulder cut, with live interactive 360° orbit controls and PBR studio lighting.', ar: 'مجسم ثلاثي الأبعاد حقيقي مدمج لقصة الهودي البوكسي 520 جرام، مع إمكانية فحص تفاصيل النسيج والتدوير بزاوية 360 درجة بحرية.' },
         productSource: { kind: 'firstAvailableProduct' },
-        model: { assetId: 'asset-model-hoodie-obj', format: 'obj', scale: [1, 1, 1], position: [0, 0, 0], rotation: [0, 0, 0], cameraPosition: [0, 0, 5], autoRotate: true, autoRotateSpeed: 0.35, backgroundColor: '#0A1422', lightingPreset: 'studio', materialColor: '#0D1929' },
+        model: { assetId: 'asset-model-hoodie-obj', format: 'obj', scale: [1, 1, 1], position: [0, 0, 0], rotation: [0, 0, 0], cameraPosition: [0, 0.4, 4.2], autoRotate: true, autoRotateSpeed: 1, backgroundColor: '#0A1422', lightingPreset: 'studio', materialColor: '#0D1929' },
         allowManualOrbit: true,
         showFallbackMannequin: true,
       },

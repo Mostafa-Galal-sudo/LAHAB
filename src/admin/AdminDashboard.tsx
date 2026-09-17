@@ -5,7 +5,8 @@ import ProductForm from './ProductForm';
 import ProductCard from '../components/ProductCard';
 import Wordmark from '../components/Wordmark';
 import AdminAnalytics from './AdminAnalytics';
-import { Package, MessageSquare, BarChart3, Inbox, Trash2, Star, CheckCircle, ShieldCheck } from 'lucide-react';
+import { Package, MessageSquare, BarChart3, Inbox, Trash2, CheckCircle, LayoutTemplate } from 'lucide-react';
+import SiteEditor from './SiteEditor';
 
 interface AdminDashboardProps {
   username: string;
@@ -23,7 +24,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ username, onLogg
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<ViewState>({ mode: 'list' });
-  const [tab, setTab] = useState<'pieces' | 'analytics' | 'reviews' | 'inquiries'>('pieces');
+  const [tab, setTab] = useState<'pieces' | 'analytics' | 'reviews' | 'inquiries' | 'editor'>('pieces');
   const [notice, setNotice] = useState('');
   const [pendingDelete, setPendingDelete] = useState<ProductItem | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -198,6 +199,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ username, onLogg
                   <Inbox className="w-4 h-4" />
                   <span>Orders & Inbox ({inquiries.length})</span>
                 </button>
+
+                <button
+                  onClick={() => setTab('editor')}
+                  className={`flex items-center gap-2 font-heading text-sm sm:text-base uppercase tracking-wider cursor-pointer pb-2 transition-colors ${
+                    tab === 'editor' ? 'text-[#D8A065] border-b-2 border-[#D8A065]' : 'text-[#E2E6E8]/60 hover:text-[#E2E6E8]'
+                  }`}
+                >
+                  <LayoutTemplate className="w-4 h-4" />
+                  <span>Site Editor</span>
+                </button>
               </div>
 
               {tab === 'pieces' && (
@@ -338,11 +349,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ username, onLogg
                       <pre className="text-xs font-mono text-[#E2E6E8]/90 whitespace-pre-wrap bg-[#0D1929] p-3 border border-[#E2E6E8]/10 max-h-48 overflow-y-auto">
                         {inq.message}
                       </pre>
+                      {inq.totalEGP !== null && Number.isFinite(Number(inq.totalEGP)) && (
+                        <div className="text-right font-heading text-sm text-[#D8A065]">
+                          Total: {Number(inq.totalEGP).toLocaleString()} EGP
+                        </div>
+                      )}
                     </div>
                   ))
                 )}
               </div>
             )}
+
+            {tab === 'editor' && <SiteEditor />}
           </>
         )}
 

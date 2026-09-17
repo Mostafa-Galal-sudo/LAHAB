@@ -371,3 +371,15 @@ body {
   background: var(--color-accent);
 }
 
+[data-editor-preview-safe="true"] [data-editor-section-id] {
+  outline: 0 solid transparent;
+  transition: outline-color 120ms ease, filter 120ms ease;
+}
+[data-editor-preview-safe="true"] [data-editor-section-id]:hover {
+  outline: 2px solid rgba(216, 160, 101, 0.7);
+  outline-offset: -2px;
+}
+[data-editor-preview-safe="true"] [data-editor-selected="true"] {
+  outline: 3px solid #D8A065;
+  outline-offset: -3px;
+}

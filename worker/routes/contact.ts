@@ -176,13 +176,30 @@ contactRouter.post(
 );
 
 // POST /api/checkout — Full order reservation: saves to DB, sends email, returns WhatsApp & Gmail links
+const CHECKOUT_COUPONS: Record<string, number> = {
+  LAHABLTD: 15,
+  VIP15: 15,
+  DROP02: 15,
+  DROP01: 10,
+  FIRE10: 10,
+};
+
+interface CheckoutProductRow {
+  id: string;
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  priceEGP: number;
+  sizes: string;
+}
+
 contactRouter.post(
   '/checkout',
   rateLimit({ name: 'checkout', windowSeconds: 15 * 60, limit: 10, message: 'Too many order submissions. Please try again shortly.' }),
   async (c) => {
     try {
       const body = await c.req.json().catch(() => ({}) as any);
-      const { fullName, phone, email, address, location, regionType, paymentMethod, notes, couponCode, items, subtotalEGP, shippingFeeEGP, discountAmount, totalEGP, language } = body;
+      const { fullName, phone, email, address, location, regionType, paymentMethod, notes, couponCode, items, language } = body;
 
       const isAr = language === 'ar';
 
@@ -203,12 +220,62 @@ contactRouter.post(
         return c.json({ success: false, error: isAr ? 'العنوان مطلوب' : 'Delivery address is required', field: 'address' }, 400);
       }
 
+      if (regionType !== 'egypt' && regionType !== 'gcc') {
+        return c.json({ success: false, error: 'A valid delivery region is required.', field: 'regionType' }, 400);
+      }
+      if (!Array.isArray(items) || items.length === 0 || items.length > 25) {
+        return c.json({ success: false, error: 'The order must contain between 1 and 25 items.', field: 'items' }, 400);
+      }
+
+      const parsedItems: Array<{ productId: string; name: string; code: string; size: string; quantity: number; price: number; monogram?: string }> = [];
+      for (const rawItem of items) {
+        const productId = typeof rawItem?.productId === 'string' ? rawItem.productId.trim() : '';
+        const size = typeof rawItem?.size === 'string' ? rawItem.size.trim() : '';
+        const quantity = Number(rawItem?.quantity);
+        if (!productId || !Number.isInteger(quantity) || quantity < 1 || quantity > 10) {
+          return c.json({ success: false, error: 'An order item is malformed.', field: 'items' }, 400);
+        }
+        const product = await c.env.DB.prepare(
+          'SELECT id, code, nameEn, nameAr, priceEGP, sizes FROM products WHERE id = ?'
+        ).bind(productId).first<CheckoutProductRow>();
+        if (!product) {
+          return c.json({ success: false, error: `Product ${productId} is no longer available.`, field: 'items' }, 422);
+        }
+        const allowedSizes = JSON.parse(product.sizes) as string[];
+        if (!allowedSizes.includes(size)) {
+          return c.json({ success: false, error: `Size ${size} is not available for ${product.code}.`, field: 'items' }, 422);
+        }
+        const monogram = typeof rawItem?.monogram === 'string'
+          ? rawItem.monogram.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 80)
+          : '';
+        parsedItems.push({
+          productId,
+          name: isAr ? product.nameAr : product.nameEn,
+          code: product.code,
+          size,
+          quantity,
+          price: Math.round(product.priceEGP),
+          ...(monogram ? { monogram } : {}),
+        });
+      }
+
+      const subtotalEGP = parsedItems.reduce(
+        (sum, item) => sum + item.price * item.quantity + (item.monogram ? 350 * item.quantity : 0),
+        0
+      );
+      const normalizedCoupon = typeof couponCode === 'string' ? couponCode.trim().toUpperCase() : '';
+      const discountPercent = normalizedCoupon ? CHECKOUT_COUPONS[normalizedCoupon] : 0;
+      if (normalizedCoupon && !discountPercent) {
+        return c.json({ success: false, error: 'This coupon code is not valid.', field: 'couponCode' }, 422);
+      }
+      const discountAmount = Math.round(subtotalEGP * (discountPercent / 100));
+      const cairoOrGiza = regionType === 'egypt' && /cairo|giza|القاهرة|الجيزة/i.test(cleanLocation);
+      const shippingFeeEGP = regionType === 'gcc' ? 350 : cairoOrGiza ? 0 : 50;
+      const totalEGP = Math.max(0, subtotalEGP - discountAmount + shippingFeeEGP);
+
       const prefix = regionType === 'gcc' ? 'LHB-GCC' : 'LHB-EG';
       const reservationCode = `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`;
       const timestamp = new Date().toISOString();
-
-      const parsedItems: Array<{ name: string; code: string; size: string; quantity: number; price: number; monogram?: string }> =
-        Array.isArray(items) ? items : [];
 
       const itemsSummaryText = parsedItems
         .map(
@@ -270,10 +337,22 @@ contactRouter.post(
 
       try {
         await c.env.DB.prepare(
-          `INSERT INTO inquiries (id, timestamp, name, email, phone, inquiryType, subject, message, emailStatus)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          `INSERT INTO inquiries (id, timestamp, name, email, phone, inquiryType, subject, message, emailStatus, orderDataJson, totalEGP)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
-          .bind(reservationCode, timestamp, cleanName, cleanEmail || null, cleanPhone, 'order', emailSubject, emailBodyText.slice(0, 2500), emailStatus)
+          .bind(
+            reservationCode,
+            timestamp,
+            cleanName,
+            cleanEmail || '',
+            cleanPhone,
+            'order',
+            emailSubject,
+            emailBodyText.slice(0, 2500),
+            emailStatus,
+            JSON.stringify({ items: parsedItems, subtotalEGP, shippingFeeEGP, discountAmount, totalEGP, couponCode: normalizedCoupon || null, regionType, location: cleanLocation, paymentMethod }),
+            totalEGP
+          )
           .run();
       } catch (dbErr) {
         console.warn('[LAHAB Worker] DB insert for order failed (non-fatal):', dbErr);
@@ -287,6 +366,10 @@ contactRouter.post(
         gmailUrl,
         mailtoUrl,
         emailStatus,
+        subtotalEGP,
+        shippingFeeEGP,
+        discountAmount,
+        totalEGP,
         message: isAr
           ? `تم تسجيل طلبك برقم ${reservationCode} وإرسال الإشعار للأتيليه.`
           : `Order ${reservationCode} registered and dispatched to the atelier.`,
@@ -302,7 +385,22 @@ contactRouter.post(
 contactRouter.get('/inquiries', requireAdmin, async (c) => {
   try {
     const { results } = await c.env.DB.prepare('SELECT * FROM inquiries ORDER BY timestamp DESC LIMIT 100').all();
-    return c.json({ success: true, inquiries: results });
+    const inquiries = results.map((row: any) => {
+      let orderData = null;
+      try {
+        orderData = row.orderDataJson ? JSON.parse(row.orderDataJson) : null;
+      } catch {
+        orderData = null;
+      }
+      const storedTotal = Number(row.totalEGP);
+      const legacyMatch = typeof row.message === 'string' ? row.message.match(/(?:TOTAL|Total):\s*([\d,]+)\s*EGP/i) : null;
+      const legacyTotal = legacyMatch ? Number(legacyMatch[1].replace(/,/g, '')) : null;
+      const safeTotal = row.totalEGP !== null && Number.isFinite(storedTotal) && storedTotal >= 0
+        ? storedTotal
+        : Number.isFinite(legacyTotal) ? legacyTotal : null;
+      return { ...row, orderData, totalEGP: safeTotal };
+    });
+    return c.json({ success: true, inquiries });
   } catch (err) {
     return c.json({ success: false, inquiries: [] });
   }

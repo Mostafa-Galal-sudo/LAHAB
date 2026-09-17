@@ -16,16 +16,16 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({ products, inquir
   // Extract total revenue from recorded messages or fallback to catalog valuation
   let totalRevenueEGP = 0;
   orderInquiries.forEach((inq) => {
+    const structuredTotal = Number(inq.totalEGP);
+    if (inq.totalEGP !== null && inq.totalEGP !== undefined && Number.isFinite(structuredTotal) && structuredTotal >= 0) {
+      totalRevenueEGP += structuredTotal;
+      return;
+    }
     const match = inq.message?.match(/(?:إجمالي|TOTAL|Total):\s*([\d,]+)\s*EGP/i) || inq.message?.match(/([\d,]+)\s*ج\.م/);
     if (match && match[1]) {
       totalRevenueEGP += Number(match[1].replace(/,/g, '')) || 0;
     }
   });
-
-  if (totalRevenueEGP === 0 && orderInquiries.length > 0) {
-    const avgPrice = products.length > 0 ? products[0].priceEGP : 4850;
-    totalRevenueEGP = orderInquiries.length * avgPrice;
-  }
 
   const totalReservations = orderInquiries.length;
   const averageOrderValueEGP = totalReservations > 0 ? Math.round(totalRevenueEGP / totalReservations) : 0;
@@ -213,4 +213,3 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({ products, inquir
 };
 
 export default AdminAnalytics;
-

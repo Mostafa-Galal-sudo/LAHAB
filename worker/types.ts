@@ -1,5 +1,6 @@
 export interface Env {
   DB: D1Database;
+  ASSET_BUCKET: R2Bucket;
 
   // Secrets (set via `wrangler secret put NAME`, never committed to git)
   ADMIN_JWT_SECRET: string;

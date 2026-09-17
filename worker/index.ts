@@ -9,6 +9,7 @@ import { wishlistRouter } from './routes/wishlist';
 import { adminAuthRouter } from './routes/admin';
 import { contactRouter } from './routes/contact';
 import { adminPagesRouter, publicPagesRouter } from './routes/pages';
+import { adminAssetsRouter, publicAssetsRouter } from './routes/assets';
 import { ADMIN_PATH_SLUG } from '../shared/adminSlug';
 
 const app = new Hono<AppEnv>();
@@ -27,6 +28,7 @@ app.route('/api/reviews', reviewsRouter);
 app.route('/api/cart', cartRouter);
 app.route('/api/wishlist', wishlistRouter);
 app.route('/api/pages', publicPagesRouter);
+app.route('/api/assets', publicAssetsRouter);
 app.route('/api', contactRouter); // exposes /api/contact and /api/stock-alert
 
 // Admin auth routes live under a random, non-guessable path instead of
@@ -36,6 +38,7 @@ app.route('/api', contactRouter); // exposes /api/contact and /api/stock-alert
 // substitute for it. See shared/adminSlug.ts to change the path.
 app.route(`/api/${ADMIN_PATH_SLUG}`, adminAuthRouter);
 app.route(`/api/${ADMIN_PATH_SLUG}/pages`, adminPagesRouter);
+app.route(`/api/${ADMIN_PATH_SLUG}/assets`, adminAssetsRouter);
 
 // Anything else (the React SPA, including its own /${ADMIN_PATH_SLUG} page
 // route) never reaches this Worker at all - wrangler.jsonc's

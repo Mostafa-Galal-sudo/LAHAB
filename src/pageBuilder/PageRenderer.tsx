@@ -19,7 +19,14 @@ const PageRenderer: React.FC<PageRendererProps> = ({ page, context }) => {
       style={{ display: 'contents' }}
     >
       {sections.map((section) => (
-        <SectionRenderer key={section.id} section={section} context={context} />
+        <div
+          key={section.id}
+          data-editor-section-id={section.id}
+          data-editor-path={`sections.${page.sections.indexOf(section)}`}
+          style={{ display: 'contents' }}
+        >
+          <SectionRenderer section={section} context={context} />
+        </div>
       ))}
     </div>
   );
