@@ -72,8 +72,12 @@ publicAssetsRouter.get('/:id/content', async (c) => {
   const row = await c.env.DB.prepare(`${SELECT} WHERE id = ?`).bind(c.req.param('id')).first<AssetRow>();
   if (!row) return c.json({ success: false, error: 'Asset not found.' }, 404);
   if (row.storageKey.startsWith('bundled/')) return c.redirect(row.publicUrl, 302);
+  const assetBucket = c.env.ASSET_BUCKET;
+  if (!assetBucket) {
+    return c.json({ success: false, error: 'Asset storage is not configured.' }, 503);
+  }
   try {
-    const object = await c.env.ASSET_BUCKET.get(row.storageKey);
+    const object = await assetBucket.get(row.storageKey);
     if (!object) return c.json({ success: false, error: 'Asset binary not found.' }, 404);
     const headers = new Headers();
     object.writeHttpMetadata(headers);
@@ -96,6 +100,10 @@ adminAssetsRouter.get('/', async (c) => {
 });
 
 adminAssetsRouter.post('/', async (c) => {
+  const assetBucket = c.env.ASSET_BUCKET;
+  if (!assetBucket) {
+    return c.json({ success: false, error: 'Asset uploads are not configured.' }, 503);
+  }
   const form = await c.req.formData().catch(() => null);
   const file = form?.get('file');
   const kind = form?.get('kind');
@@ -130,7 +138,7 @@ adminAssetsRouter.post('/', async (c) => {
   const publicUrl = `/api/assets/${encodeURIComponent(id)}/content`;
   const now = new Date().toISOString();
   try {
-    await c.env.ASSET_BUCKET.put(storageKey, file.stream(), {
+    await assetBucket.put(storageKey, file.stream(), {
       httpMetadata: { contentType: file.type, cacheControl: 'public, max-age=31536000, immutable' },
       customMetadata: { assetId: id, originalName: safeName, kind: typedKind },
     });
@@ -140,7 +148,7 @@ adminAssetsRouter.post('/', async (c) => {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(id, typedKind, storageKey, publicUrl, file.type, safeName, file.size, JSON.stringify({ extension, source: 'r2' }), now).run();
     } catch (error) {
-      await c.env.ASSET_BUCKET.delete(storageKey);
+      await assetBucket.delete(storageKey);
       throw error;
     }
   } catch (error) {
@@ -152,6 +160,10 @@ adminAssetsRouter.post('/', async (c) => {
 });
 
 adminAssetsRouter.delete('/:id', async (c) => {
+  const assetBucket = c.env.ASSET_BUCKET;
+  if (!assetBucket) {
+    return c.json({ success: false, error: 'Asset storage is not configured.' }, 503);
+  }
   const row = await c.env.DB.prepare(`${SELECT} WHERE id = ?`).bind(c.req.param('id')).first<AssetRow>();
   if (!row) return c.json({ success: false, error: 'Asset not found.' }, 404);
   if (row.storageKey.startsWith('bundled/')) return c.json({ success: false, error: 'Bundled compatibility assets cannot be deleted.' }, 409);
@@ -161,7 +173,7 @@ adminAssetsRouter.delete('/:id', async (c) => {
     return c.json({ success: false, error: 'Asset is referenced by page or product history and cannot be deleted.', code: 'ASSET_IN_USE' }, 409);
   }
   try {
-    await c.env.ASSET_BUCKET.delete(row.storageKey);
+    await assetBucket.delete(row.storageKey);
     await c.env.DB.prepare('DELETE FROM assets WHERE id = ?').bind(row.id).run();
     return c.json({ success: true });
   } catch (error) {

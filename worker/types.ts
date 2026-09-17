@@ -1,6 +1,8 @@
 export interface Env {
   DB: D1Database;
-  ASSET_BUCKET: R2Bucket;
+  // Optional until the Cloudflare account has an active R2 subscription.
+  // Bundled compatibility assets continue to resolve without this binding.
+  ASSET_BUCKET?: R2Bucket;
 
   // Secrets (set via `wrangler secret put NAME`, never committed to git)
   ADMIN_JWT_SECRET: string;

@@ -22,14 +22,6 @@
     }
   ],
 
-  "r2_buckets": [
-    {
-      "binding": "ASSET_BUCKET",
-      "bucket_name": "lahab-assets",
-      "preview_bucket_name": "lahab-assets-preview"
-    }
-  ],
-
   // Plain (non-secret) vars - safe to commit to git.
   "vars": {
     "PBKDF2_ITERATIONS": "100000",
