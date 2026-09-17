@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { adminMe } from '../lib/api';
 import AdminLogin from './AdminLogin';
 import AdminDashboard from './AdminDashboard';
-import FlameCursor from '../components/FlameCursor';
 
 export const AdminApp: React.FC = () => {
   const [checking, setChecking] = useState(true);
@@ -19,15 +18,10 @@ export const AdminApp: React.FC = () => {
     return <div className="min-h-screen bg-[#0D1929]" />;
   }
 
-  return (
-    <>
-      <FlameCursor />
-      {!username ? (
-        <AdminLogin onLoggedIn={setUsername} />
-      ) : (
-        <AdminDashboard username={username} onLoggedOut={() => setUsername(null)} />
-      )}
-    </>
+  return !username ? (
+    <AdminLogin onLoggedIn={setUsername} />
+  ) : (
+    <AdminDashboard username={username} onLoggedOut={() => setUsername(null)} />
   );
 };
 
