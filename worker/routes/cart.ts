@@ -97,8 +97,10 @@ cartRouter.post('/', async (c) => {
   const deviceId = c.get('deviceId');
   const { productId, size, monogram } = await c.req.json().catch(() => ({}) as any);
 
-  const product = await c.env.DB.prepare('SELECT 1 FROM products WHERE id = ?').bind(productId).first();
-  if (!product || !size) {
+  const product = await c.env.DB.prepare('SELECT sizes, outOfStockSizes FROM products WHERE id = ?').bind(productId).first<{ sizes: string; outOfStockSizes: string }>();
+  const availableSizes = product ? JSON.parse(product.sizes) as string[] : [];
+  const outOfStockSizes = product ? JSON.parse(product.outOfStockSizes) as string[] : [];
+  if (!product || typeof size !== 'string' || !availableSizes.includes(size) || outOfStockSizes.includes(size)) {
     return c.json({ success: false, error: 'Invalid product or size.' }, 400);
   }
 
@@ -117,6 +119,7 @@ cartRouter.post('/', async (c) => {
   const now = new Date().toISOString();
 
   if (existing) {
+    if (existing.quantity >= 10) return c.json({ success: false, error: 'Maximum quantity is 10.' }, 400);
     await c.env.DB.prepare('UPDATE cart_items SET quantity = quantity + 1, updatedAt = ? WHERE id = ?')
       .bind(now, existing.id)
       .run();
@@ -137,13 +140,17 @@ cartRouter.post('/', async (c) => {
 cartRouter.patch('/:id', async (c) => {
   const deviceId = c.get('deviceId');
   const { delta } = await c.req.json().catch(() => ({}) as any);
+  if (!Number.isInteger(delta) || ![-1, 1].includes(delta)) {
+    return c.json({ success: false, error: 'Quantity delta must be -1 or 1.' }, 400);
+  }
   const row = await c.env.DB.prepare('SELECT * FROM cart_items WHERE id = ? AND deviceId = ?')
     .bind(c.req.param('id'), deviceId)
     .first<CartRow>();
 
   if (!row) return c.json({ success: false, error: 'Cart item not found.' }, 404);
 
-  const newQty = row.quantity + (Number(delta) || 0);
+  const newQty = row.quantity + delta;
+  if (newQty > 10) return c.json({ success: false, error: 'Maximum quantity is 10.' }, 400);
   if (newQty <= 0) {
     await c.env.DB.prepare('DELETE FROM cart_items WHERE id = ?').bind(row.id).run();
   } else {

@@ -8,6 +8,15 @@ export const contactRouter = new Hono<AppEnv>();
 
 const ATELIER_TARGET_EMAIL = 'lahabfire@gmail.com';
 const ATELIER_WHATSAPP_NUMBER = '201288224920';
+const escapeHtml = (value: unknown) => String(value ?? '')
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+const singleLine = (value: unknown, maxLength: number) => typeof value === 'string'
+  ? value.trim().replace(/[\r\n]+/g, ' ').slice(0, maxLength)
+  : '';
 
 const CATEGORY_NAMES: Record<string, { en: string; ar: string }> = {
   bespoke: { en: 'Bespoke Gold Monogram / Custom Tailoring', ar: 'تطريز مخصص / تفصيل خاص' },
@@ -31,11 +40,11 @@ contactRouter.post('/contact', contactLimiter, async (c) => {
     const body = await c.req.json().catch(() => ({}) as any);
     const { name, email, phone, inquiryType, subject, message, language } = body;
 
-    const cleanName = typeof name === 'string' ? name.trim().slice(0, 80) : '';
-    const cleanEmail = typeof email === 'string' ? email.trim().slice(0, 100) : '';
-    const cleanPhone = typeof phone === 'string' ? phone.trim().slice(0, 40) : '';
-    const cleanCategory = typeof inquiryType === 'string' ? inquiryType.trim() : 'general';
-    const cleanSubject = typeof subject === 'string' ? subject.trim().slice(0, 120) : '';
+    const cleanName = singleLine(name, 80);
+    const cleanEmail = singleLine(email, 100);
+    const cleanPhone = singleLine(phone, 40);
+    const cleanCategory = singleLine(inquiryType, 40) || 'general';
+    const cleanSubject = singleLine(subject, 120);
     const cleanMessage = typeof message === 'string' ? message.trim().slice(0, 2500) : '';
     const isAr = language === 'ar';
 
@@ -98,13 +107,13 @@ contactRouter.post('/contact', contactLimiter, async (c) => {
         <h2 style="color: #D8A065; margin: 0; font-size: 20px;">LΛHΛB | ATELIER INQUIRY</h2>
         <p style="color: #8E9CAE; font-size: 12px;">Reference: <strong>${inquiryId}</strong></p>
         <table style="width: 100%; font-size: 14px; margin: 16px 0;">
-          <tr><td style="color:#8E9CAE; padding:4px 0;">Name:</td><td style="color:#FFF;">${cleanName}</td></tr>
-          <tr><td style="color:#8E9CAE; padding:4px 0;">Email:</td><td><a href="mailto:${cleanEmail}" style="color:#D8A065;">${cleanEmail}</a></td></tr>
-          <tr><td style="color:#8E9CAE; padding:4px 0;">Phone:</td><td style="color:#FFF;">${cleanPhone || 'Not specified'}</td></tr>
-          <tr><td style="color:#8E9CAE; padding:4px 0;">Category:</td><td style="color:#D8A065;">${catLabel}</td></tr>
+          <tr><td style="color:#8E9CAE; padding:4px 0;">Name:</td><td style="color:#FFF;">${escapeHtml(cleanName)}</td></tr>
+          <tr><td style="color:#8E9CAE; padding:4px 0;">Email:</td><td><a href="mailto:${escapeHtml(cleanEmail)}" style="color:#D8A065;">${escapeHtml(cleanEmail)}</a></td></tr>
+          <tr><td style="color:#8E9CAE; padding:4px 0;">Phone:</td><td style="color:#FFF;">${escapeHtml(cleanPhone || 'Not specified')}</td></tr>
+          <tr><td style="color:#8E9CAE; padding:4px 0;">Category:</td><td style="color:#D8A065;">${escapeHtml(catLabel)}</td></tr>
         </table>
         <div style="background:#132238; border-left:3px solid #D8A065; padding:16px;">
-          <p style="white-space:pre-wrap; margin:0; color:#E2E6E8;">${cleanMessage}</p>
+          <p style="white-space:pre-wrap; margin:0; color:#E2E6E8;">${escapeHtml(cleanMessage)}</p>
         </div>
       </div>`,
     });
@@ -146,10 +155,10 @@ contactRouter.post(
       const { email, phone, productName, size, language } = await c.req.json().catch(() => ({}) as any);
       const isAr = language === 'ar';
 
-      const cleanEmail = typeof email === 'string' ? email.trim().slice(0, 100) : '';
-      const cleanPhone = typeof phone === 'string' ? phone.trim().slice(0, 40) : '';
-      const cleanProduct = typeof productName === 'string' ? productName.trim().slice(0, 120) : 'Unknown Piece';
-      const cleanSize = typeof size === 'string' ? size.trim().slice(0, 10) : 'N/A';
+      const cleanEmail = singleLine(email, 100);
+      const cleanPhone = singleLine(phone, 40);
+      const cleanProduct = singleLine(productName, 120) || 'Unknown Piece';
+      const cleanSize = singleLine(size, 10) || 'N/A';
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!cleanEmail || !emailRegex.test(cleanEmail)) {
@@ -191,6 +200,7 @@ interface CheckoutProductRow {
   nameAr: string;
   priceEGP: number;
   sizes: string;
+  outOfStockSizes: string;
 }
 
 contactRouter.post(
@@ -203,11 +213,11 @@ contactRouter.post(
 
       const isAr = language === 'ar';
 
-      const cleanName = typeof fullName === 'string' ? fullName.trim().slice(0, 80) : '';
-      const cleanPhone = typeof phone === 'string' ? phone.trim().slice(0, 40) : '';
-      const cleanEmail = typeof email === 'string' ? email.trim().slice(0, 100) : '';
+      const cleanName = singleLine(fullName, 80);
+      const cleanPhone = singleLine(phone, 40);
+      const cleanEmail = singleLine(email, 100);
       const cleanAddress = typeof address === 'string' ? address.trim().slice(0, 300) : '';
-      const cleanLocation = typeof location === 'string' ? location.trim().slice(0, 120) : '';
+      const cleanLocation = singleLine(location, 120);
       const cleanNotes = typeof notes === 'string' ? notes.trim().slice(0, 500) : '';
 
       if (!cleanName || cleanName.length < 2) {
@@ -236,13 +246,14 @@ contactRouter.post(
           return c.json({ success: false, error: 'An order item is malformed.', field: 'items' }, 400);
         }
         const product = await c.env.DB.prepare(
-          'SELECT id, code, nameEn, nameAr, priceEGP, sizes FROM products WHERE id = ?'
+          'SELECT id, code, nameEn, nameAr, priceEGP, sizes, outOfStockSizes FROM products WHERE id = ?'
         ).bind(productId).first<CheckoutProductRow>();
         if (!product) {
           return c.json({ success: false, error: `Product ${productId} is no longer available.`, field: 'items' }, 422);
         }
         const allowedSizes = JSON.parse(product.sizes) as string[];
-        if (!allowedSizes.includes(size)) {
+        const outOfStockSizes = JSON.parse(product.outOfStockSizes) as string[];
+        if (!allowedSizes.includes(size) || outOfStockSizes.includes(size)) {
           return c.json({ success: false, error: `Size ${size} is not available for ${product.code}.`, field: 'items' }, 422);
         }
         const monogram = typeof rawItem?.monogram === 'string'
@@ -307,16 +318,16 @@ contactRouter.post(
           <h2 style="color:#D8A065;margin:0 0 4px;font-size:22px;letter-spacing:2px;">LΛHΛB — NEW ORDER</h2>
           <p style="color:#8E9CAE;font-size:12px;margin:0 0 20px;">Code: <strong style="color:#D8A065;">${reservationCode}</strong></p>
           <table style="width:100%;font-size:14px;border-collapse:collapse;margin-bottom:20px;">
-            <tr><td style="color:#8E9CAE;padding:4px 0;">Client:</td><td style="color:#FFF;font-weight:bold;">${cleanName}</td></tr>
-            <tr><td style="color:#8E9CAE;padding:4px 0;">Phone:</td><td style="color:#FFF;">${cleanPhone}</td></tr>
-            <tr><td style="color:#8E9CAE;padding:4px 0;">Email:</td><td><a href="mailto:${cleanEmail}" style="color:#D8A065;">${cleanEmail || 'N/A'}</a></td></tr>
-            <tr><td style="color:#8E9CAE;padding:4px 0;">Region:</td><td style="color:#FFF;">${cleanLocation}</td></tr>
-            <tr><td style="color:#8E9CAE;padding:4px 0;">Address:</td><td style="color:#FFF;">${cleanAddress}</td></tr>
-            <tr><td style="color:#8E9CAE;padding:4px 0;">Payment:</td><td style="color:#D8A065;font-weight:bold;">${paymentLabel}</td></tr>
+            <tr><td style="color:#8E9CAE;padding:4px 0;">Client:</td><td style="color:#FFF;font-weight:bold;">${escapeHtml(cleanName)}</td></tr>
+            <tr><td style="color:#8E9CAE;padding:4px 0;">Phone:</td><td style="color:#FFF;">${escapeHtml(cleanPhone)}</td></tr>
+            <tr><td style="color:#8E9CAE;padding:4px 0;">Email:</td><td><a href="mailto:${escapeHtml(cleanEmail)}" style="color:#D8A065;">${escapeHtml(cleanEmail || 'N/A')}</a></td></tr>
+            <tr><td style="color:#8E9CAE;padding:4px 0;">Region:</td><td style="color:#FFF;">${escapeHtml(cleanLocation)}</td></tr>
+            <tr><td style="color:#8E9CAE;padding:4px 0;">Address:</td><td style="color:#FFF;">${escapeHtml(cleanAddress)}</td></tr>
+            <tr><td style="color:#8E9CAE;padding:4px 0;">Payment:</td><td style="color:#D8A065;font-weight:bold;">${escapeHtml(paymentLabel)}</td></tr>
           </table>
           <div style="background:#132238;border-left:3px solid #D8A065;padding:16px;margin-bottom:16px;">
             <p style="color:#D8A065;font-size:11px;font-weight:bold;margin:0 0 10px;">ORDERED ITEMS</p>
-            ${parsedItems.map((item) => `<div style="border-bottom:1px solid #1e3a5f;padding:7px 0;font-size:13px;"><span style="color:#D8A065;font-weight:bold;">${item.code}</span> — ${item.name}<br/><span style="color:#8E9CAE;">Size: ${item.size} | Qty: ${item.quantity} | ${(item.price * item.quantity).toLocaleString()} EGP</span>${item.monogram ? `<br/><span style="color:#D8A065;font-size:11px;">✨ BESPOKE: "${item.monogram}"</span>` : ''}</div>`).join('')}
+            ${parsedItems.map((item) => `<div style="border-bottom:1px solid #1e3a5f;padding:7px 0;font-size:13px;"><span style="color:#D8A065;font-weight:bold;">${escapeHtml(item.code)}</span> — ${escapeHtml(item.name)}<br/><span style="color:#8E9CAE;">Size: ${escapeHtml(item.size)} | Qty: ${item.quantity} | ${(item.price * item.quantity).toLocaleString()} EGP</span>${item.monogram ? `<br/><span style="color:#D8A065;font-size:11px;">✨ BESPOKE: "${escapeHtml(item.monogram)}"</span>` : ''}</div>`).join('')}
           </div>
           <table style="width:100%;font-size:14px;">
             <tr><td style="color:#8E9CAE;">Subtotal:</td><td style="text-align:right;color:#FFF;">${subtotalEGP?.toLocaleString()} EGP</td></tr>

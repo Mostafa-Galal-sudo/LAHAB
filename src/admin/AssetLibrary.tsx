@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Box, FileText, Image, Trash2, Upload, Video, X } from 'lucide-react';
 import { ApiError, deleteAsset, getAssets, uploadAsset, type AssetKind, type AssetRecord } from '../lib/api';
+import { resolveAsset } from '../pageBuilder/assetResolver';
 
 interface AssetLibraryProps { onClose: () => void; onSelect: (asset: AssetRecord) => void }
 const ACCEPT: Record<AssetKind, string> = { image: '.jpg,.jpeg,.png,.webp,.avif,.gif', model: '.obj,.glb', video: '.mp4,.webm', document: '.pdf' };
@@ -54,7 +55,7 @@ const AssetLibrary: React.FC<AssetLibraryProps> = ({ onClose, onSelect }) => {
       <div className="p-4 overflow-y-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {loading ? <p className="text-sm text-[#E2E6E8]/50">Loading assets…</p> : assets.map((asset) => <article key={asset.id} className="border border-[#E2E6E8]/15 bg-[#132238]/50 overflow-hidden group">
           <button onClick={() => onSelect(asset)} className="w-full text-left">
-            <div className="h-28 bg-[#070E18] grid place-items-center overflow-hidden">{asset.kind === 'image' ? <img src={asset.publicUrl} alt="" className="w-full h-full object-cover" /> : icon(asset.kind)}</div>
+            <div className="h-28 bg-[#070E18] grid place-items-center overflow-hidden">{asset.kind === 'image' ? <img src={resolveAsset({ assetId: asset.id }, asset.publicUrl)} alt="" className="w-full h-full object-cover" /> : icon(asset.kind)}</div>
             <div className="p-3"><div className="text-[11px] font-heading truncate">{asset.fileName}</div><div className="text-[9px] font-mono text-[#E2E6E8]/45 mt-1">{asset.kind} • {(asset.byteSize / 1024).toFixed(1)} KB</div><code className="text-[8px] text-[#D8A065]/60 break-all">{asset.id}</code></div>
           </button>
           <button onClick={() => remove(asset)} className="w-full border-t border-[#E2E6E8]/10 p-2 text-[10px] text-red-300 flex items-center justify-center gap-1"><Trash2 className="w-3 h-3" /> Delete safely</button>

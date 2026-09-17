@@ -10,7 +10,7 @@ const secret = vars.match(/^ADMIN_JWT_SECRET=(.+)$/m)?.[1]?.trim();
 const slug = slugSource.match(/ADMIN_PATH_SLUG\s*=\s*['"]([^'"]+)['"]/)?.[1];
 if (!secret || !slug) throw new Error('Local admin configuration is incomplete.');
 const token = await new SignJWT({ username: 'asset-page-verifier' })
-  .setProtectedHeader({ alg: 'HS256' }).setSubject('987654').setIssuedAt().setExpirationTime('10m')
+  .setProtectedHeader({ alg: 'HS256' }).setSubject(process.env.LAHAB_TEST_ADMIN_ID || '987654').setIssuedAt().setExpirationTime('10m')
   .sign(new TextEncoder().encode(secret));
 const headers = { Cookie: `lahab_admin_token=${token}` };
 const pageBase = `/api/${slug}/pages/home`;

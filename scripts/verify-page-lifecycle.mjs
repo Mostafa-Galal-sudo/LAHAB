@@ -68,6 +68,15 @@ try {
   });
   assert(invalid.response.status === 422, 'Unsupported schema versions must return 422.');
 
+  const unsafeLinkDocument = structuredClone(originalDraft);
+  const unsafeHero = unsafeLinkDocument.sections.find((section) => section.type === 'hero');
+  unsafeHero.content.actions[0].action = { type: 'link', href: 'javascript:alert(1)', target: 'self' };
+  const unsafeLink = await request(`${adminPages}/home/draft`, {
+    method: 'PUT',
+    body: { document: unsafeLinkDocument, expectedDraftRevisionId: originalDraftId },
+  });
+  assert(unsafeLink.response.status === 422, 'Unsafe page links must return 422.');
+
   const clientADocument = structuredClone(originalDraft);
   clientADocument.title.en = `${clientADocument.title.en} [phase3 verification]`;
   const saveA = await request(`${adminPages}/home/draft`, {

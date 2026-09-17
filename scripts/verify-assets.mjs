@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { readFile } from 'node:fs/promises';
 import { SignJWT } from 'jose';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const baseUrl = process.env.LAHAB_TEST_URL || 'http://127.0.0.1:5173';
 if (!/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(baseUrl)) throw new Error('Asset verification is local-only.');
@@ -10,7 +11,7 @@ const secret = vars.match(/^ADMIN_JWT_SECRET=(.+)$/m)?.[1]?.trim();
 const slug = slugSource.match(/ADMIN_PATH_SLUG\s*=\s*['"]([^'"]+)['"]/)?.[1];
 if (!secret || !slug) throw new Error('Local admin configuration is incomplete.');
 const token = await new SignJWT({ username: 'asset-verifier' })
-  .setProtectedHeader({ alg: 'HS256' }).setSubject('987654').setIssuedAt().setExpirationTime('10m')
+  .setProtectedHeader({ alg: 'HS256' }).setSubject(process.env.LAHAB_TEST_ADMIN_ID || '987654').setIssuedAt().setExpirationTime('10m')
   .sign(new TextEncoder().encode(secret));
 const cookie = `lahab_admin_token=${token}`;
 const assetsUrl = `${baseUrl}/api/${slug}/assets`;
@@ -62,10 +63,13 @@ try {
   assert(oversizedResult.response.status === 413, 'Oversized image must return 413.');
 
   const png = Uint8Array.from(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64'));
+  const glb = makeGlb();
+  const parsedGlb = await new Promise((resolve, reject) => new GLTFLoader().parse(glb.buffer, '', resolve, reject));
+  assert(parsedGlb.scene.children.length > 0, 'Generated GLB fixture must parse through the production GLTFLoader.');
   const fixtures = [
     ['image', png, 'phase6-test-image.png', 'image/png'],
     ['model', new TextEncoder().encode('o Triangle\nv 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3\n'), 'phase6-test-model.obj', 'model/obj'],
-    ['model', makeGlb(), 'phase6-test-model.glb', 'model/gltf-binary'],
+    ['model', glb, 'phase6-test-model.glb', 'model/gltf-binary'],
   ];
   for (const [kind, bytes, name, mime] of fixtures) {
     const result = await upload(kind, bytes, name, mime);

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { Box, Upload, Link, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { ProductItem, GarmentSize } from '../types';
+import { uploadAsset } from '../lib/api';
 
 interface ProductFormProps {
   initial?: ProductItem | null;
@@ -31,8 +32,6 @@ const emptyForm = {
   tagsEn: '',
   tagsAr: '',
   editorialImage: '',
-  model3DUrl: '',
-  model3DInputMode: 'url' as 'url' | 'upload',
 };
 
 export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onSubmit }) => {
@@ -59,15 +58,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
       tagsEn: (initial.tags?.en || []).join(', '),
       tagsAr: (initial.tags?.ar || []).join(', '),
       editorialImage: initial.editorialImage || '',
-      model3DUrl: (initial as any).model3DUrl || '',
-      model3DInputMode: 'url' as 'url' | 'upload',
     };
   });
   const [saving, setSaving] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageProgress, setImageProgress] = useState(0);
   const [error, setError] = useState('');
-  const [objUploadStatus, setObjUploadStatus] = useState<'idle' | 'reading' | 'ready' | 'error'>('idle');
-  const [objFileName, setObjFileName] = useState('');
-  const objFileInputRef = useRef<HTMLInputElement>(null);
 
   const toggleSize = (size: GarmentSize) => {
     setForm((prev) => {
@@ -116,7 +112,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
           ar: form.tagsAr.split(',').map((t) => t.trim()).filter(Boolean),
         },
         editorialImage: form.editorialImage || undefined,
-        model3DUrl: form.model3DUrl || undefined,
       });
     } catch (err: any) {
       setError(err.message || 'Failed to save product.');
@@ -148,40 +143,22 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
 
   const imgFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Handle .obj file upload: read locally and set URL as data URI or filename hint
-  const handleObjFileSelect = (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.obj')) {
-      setObjUploadStatus('error');
-      setObjFileName('Invalid file type — must be .obj');
-      return;
-    }
-    setObjUploadStatus('reading');
-    setObjFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = () => {
-      setForm((prev) => ({ ...prev, model3DUrl: reader.result as string || `/assets/models/${file.name}` }));
-      setObjUploadStatus('ready');
-    };
-    reader.onerror = () => {
-      setObjUploadStatus('error');
-      setObjFileName('Failed to read file');
-    };
-    reader.readAsText(file);
-  };
-
-  // Handle direct image pick (JPG / PNG / WEBP) for non-technical users
-  const handleImageFileSelect = (file: File) => {
+  const handleImageFileSelect = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       setError('Please select a valid image file (JPG, PNG, WEBP).');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setForm((prev) => ({ ...prev, editorialImage: reader.result as string }));
-      }
-    };
-    reader.readAsDataURL(file);
+    setError('');
+    setImageUploading(true);
+    setImageProgress(0);
+    try {
+      const asset = await uploadAsset(file, 'image', setImageProgress);
+      setForm((prev) => ({ ...prev, editorialImage: asset.publicUrl }));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Image upload failed.');
+    } finally {
+      setImageUploading(false);
+    }
   };
 
   return (
@@ -209,15 +186,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
             <button
               type="button"
               onClick={() => imgFileInputRef.current?.click()}
-              className="btn-lahab-primary w-full py-2.5 px-4 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+              disabled={imageUploading}
+              className="btn-lahab-primary w-full py-2.5 px-4 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <Upload className="w-4 h-4" />
-              <span>Choose Image from Device (اختر صورة من جهازك)</span>
+              <span>{imageUploading ? `Uploading ${imageProgress}%` : 'Choose Image from Device (اختر صورة من جهازك)'}</span>
             </button>
             <input
               ref={imgFileInputRef}
               type="file"
-              accept="image/*"
+              accept=".jpg,.jpeg,.png,.webp,.avif,.gif"
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -225,7 +203,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
               }}
             />
             <p className="text-[10px] text-[#E2E6E8]/60 font-body">
-              Supports JPG, PNG, WEBP. The product card will automatically generate and update across the store.
+              Uploads to the asset library (JPG, PNG, WEBP, AVIF, GIF). Binary data is never stored in D1.
             </p>
           </div>
         </div>
@@ -251,39 +229,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
 
       {field('Description (English)', form.descriptionEn, (v) => setForm({ ...form, descriptionEn: v }), { textarea: true })}
       {field('Description (Arabic)', form.descriptionAr, (v) => setForm({ ...form, descriptionAr: v }), { textarea: true })}
-
-      {/* 3D Model Asset Section — Simplified 1-Click .OBJ Upload */}
-      <div className="border border-[#D8A065]/50 bg-[#0D1929] p-4 space-y-3">
-        <div className="flex items-center gap-2 text-[#D8A065]">
-          <Box className="w-4 h-4" />
-          <span className="font-heading text-xs uppercase tracking-wider">3D Garment Model (.OBJ File)</span>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => objFileInputRef.current?.click()}
-          className="flex items-center gap-2 px-4 py-3 border border-dashed border-[#D8A065]/60 bg-[#132238]/60 text-[#D8A065] text-xs font-heading uppercase tracking-wider hover:bg-[#D8A065]/10 transition-colors cursor-pointer w-full justify-center"
-        >
-          <Upload className="w-4 h-4" />
-          Upload 3D .OBJ File (رفع ملف المجسم 3D)
-        </button>
-        <input
-          ref={objFileInputRef}
-          type="file"
-          accept=".obj"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleObjFileSelect(file);
-          }}
-        />
-        {objUploadStatus === 'ready' && (
-          <div className="flex items-center gap-2 text-xs text-[#22c55e] font-mono">
-            <CheckCircle2 className="w-4 h-4" />
-            <span>3D Model Ready: <strong>{objFileName}</strong></span>
-          </div>
-        )}
-      </div>
 
       <div className="space-y-2">
         <label className="text-[11px] font-heading text-[#E2E6E8]/70 uppercase tracking-wider block">

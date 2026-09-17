@@ -9,4 +9,7 @@ coverage/
 data/
 .dev.vars
 .wrangler/
+.tmp-d1-clean/
+.tmp-wrangler-config/
+.tmp-edge-qa/
 .seed-admin-*.sql

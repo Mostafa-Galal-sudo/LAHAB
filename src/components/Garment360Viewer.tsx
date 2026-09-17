@@ -126,6 +126,10 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
 
   const currentDescriptor = getAngleDescriptor(angle);
 
+  useEffect(() => {
+    setIsAutoOrbit(modelPresentation?.autoRotate ?? true);
+  }, [modelPresentation?.autoRotate]);
+
   const mountObject = useCallback((
     obj: THREE.Object3D,
     targetGroup: THREE.Group,
@@ -247,12 +251,12 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
         } catch { /* use mannequin */ }
       }
       if (defaultGeometryGroupRef.current) {
-        defaultGeometryGroupRef.current.visible = true;
+        defaultGeometryGroupRef.current.visible = schemaContent?.showFallbackMannequin ?? true;
       }
       setActiveModelMode('architectural');
       setIsModelLoading(false);
     }
-  }, [modelPresentation?.format, modelUrl, mountObject, parseAndMountObj, schemaContent?.model]);
+  }, [modelPresentation?.format, modelUrl, mountObject, parseAndMountObj, schemaContent?.model, schemaContent?.showFallbackMannequin]);
 
   // Initialize Three.js Scene
   useEffect(() => {
@@ -514,12 +518,14 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
 
   // Interactive mouse/touch dragging on canvas
   const handlePointerDown = (clientX: number) => {
+    if (schemaContent?.allowManualOrbit === false) return;
     isInteractingRef.current = true;
     pointerStartRef.current = { x: clientX, angle: angleRef.current };
     if (isAutoOrbit) setIsAutoOrbit(false);
   };
 
   const handlePointerMove = (clientX: number) => {
+    if (schemaContent?.allowManualOrbit === false) return;
     if (!isInteractingRef.current) return;
     const deltaX = clientX - pointerStartRef.current.x;
     const newAngle = ((pointerStartRef.current.angle + Math.round(deltaX * 0.75)) % 360 + 360) % 360;
@@ -573,7 +579,7 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
             onTouchEnd={handlePointerUp}
           >
             {/* Native Three.js WebGL Mount */}
-            <div ref={canvasContainerRef} className="w-full h-full min-h-105 sm:min-h-125 cursor-grab active:cursor-grabbing" />
+            <div ref={canvasContainerRef} className={`w-full h-full min-h-105 sm:min-h-125 ${schemaContent?.allowManualOrbit === false ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'}`} />
 
             {/* Floating Top Bar with Orbit Status & Angle */}
             <div className="absolute top-3 inset-x-3 flex items-center justify-between pointer-events-none z-20">

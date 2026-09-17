@@ -1,5 +1,17 @@
 import { ProductItem, CartItem, ProductReview, GarmentSize, MonogramCustomization, ProductId } from '../types';
 import type { PageDocument } from '../../shared/pageSchema';
+import streetwearEditorial from '../assets/images/streetwear_editorial_1788904807341.jpg';
+
+const LEGACY_PRODUCT_IMAGES: Readonly<Record<string, string>> = {
+  '/assets/images/streetwear_editorial_1788904807341.jpg': streetwearEditorial,
+};
+
+const withResolvedProductImage = (product: ProductItem): ProductItem => ({
+  ...product,
+  editorialImage: product.editorialImage ? (LEGACY_PRODUCT_IMAGES[product.editorialImage] ?? product.editorialImage) : undefined,
+});
+
+const withResolvedCartImage = (item: CartItem): CartItem => ({ ...item, product: withResolvedProductImage(item.product) });
 
 export class ApiError extends Error {
   constructor(
@@ -38,7 +50,7 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
 // Products
 // ---------------------------------------------------------------------------
 export const getProducts = () =>
-  request<{ products: ProductItem[] }>('/api/products').then((d) => d.products);
+  request<{ products: ProductItem[] }>('/api/products').then((d) => d.products.map(withResolvedProductImage));
 
 export const createProduct = (payload: Partial<ProductItem>) =>
   request<{ product: ProductItem }>('/api/products', {
@@ -79,22 +91,22 @@ export const getInquiriesApi = () =>
 // ---------------------------------------------------------------------------
 // Cart (server-persisted per anonymous device cookie)
 // ---------------------------------------------------------------------------
-export const getCart = () => request<{ items: CartItem[] }>('/api/cart').then((d) => d.items);
+export const getCart = () => request<{ items: CartItem[] }>('/api/cart').then((d) => d.items.map(withResolvedCartImage));
 
 export const addToCartApi = (productId: ProductId, size: GarmentSize, monogram?: MonogramCustomization) =>
   request<{ items: CartItem[] }>('/api/cart', {
     method: 'POST',
     body: JSON.stringify({ productId, size, monogram }),
-  }).then((d) => d.items);
+  }).then((d) => d.items.map(withResolvedCartImage));
 
 export const updateCartQuantityApi = (itemId: string, delta: number) =>
   request<{ items: CartItem[] }>(`/api/cart/${encodeURIComponent(itemId)}`, {
     method: 'PATCH',
     body: JSON.stringify({ delta }),
-  }).then((d) => d.items);
+  }).then((d) => d.items.map(withResolvedCartImage));
 
 export const clearCartApi = () =>
-  request<{ items: CartItem[] }>('/api/cart', { method: 'DELETE' }).then((d) => d.items);
+  request<{ items: CartItem[] }>('/api/cart', { method: 'DELETE' }).then((d) => d.items.map(withResolvedCartImage));
 
 // ---------------------------------------------------------------------------
 // Wishlist (server-persisted per anonymous device cookie)

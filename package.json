@@ -16,6 +16,9 @@
     "test:orders": "node scripts/verify-order-contract.mjs",
     "test:assets": "node scripts/verify-assets.mjs",
     "test:asset-page": "node scripts/verify-asset-page-integration.mjs",
+    "test:admin": "node scripts/verify-admin-contract.mjs",
+    "test:ui": "node scripts/verify-ui-smoke.mjs",
+    "test:commerce": "node scripts/verify-commerce-contract.mjs",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.worker.json"
   },

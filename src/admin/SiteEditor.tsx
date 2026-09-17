@@ -114,10 +114,11 @@ const SiteEditor: React.FC = () => {
       },
     };
     const onMessage = (event: MessageEvent<PreviewToEditorMessage>) => {
-      if (event.data?.type === 'lahab:preview-ready') postPreview();
-      if (event.data?.type === 'lahab:preview-select') {
-        if (!page?.sections.some((section) => section.id === event.data.sectionId)) return;
-        setSelectedId(event.data.sectionId);
+      const message = event.data;
+      if (message?.type === 'lahab:preview-ready') postPreview();
+      if (message?.type === 'lahab:preview-select') {
+        if (!page?.sections.some((section) => section.id === message.sectionId)) return;
+        setSelectedId(message.sectionId);
         setPreviewOverride(null);
       }
     };

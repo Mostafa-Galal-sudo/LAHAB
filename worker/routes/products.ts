@@ -70,6 +70,11 @@ function validateProductPayload(body: any): string | null {
   if (!body.sizes.every((s: string) => VALID_SIZES.includes(s))) {
     return `Sizes must be one of: ${VALID_SIZES.join(', ')}`;
   }
+  if (body.editorialImage !== undefined && body.editorialImage !== null && body.editorialImage !== '') {
+    if (typeof body.editorialImage !== 'string' || body.editorialImage.length > 500 || !/^(https?:\/\/|\/(?!\/))/i.test(body.editorialImage)) {
+      return 'Product images must use a valid asset or HTTPS URL.';
+    }
+  }
   return null;
 }
 

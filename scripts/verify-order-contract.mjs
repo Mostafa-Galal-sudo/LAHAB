@@ -22,7 +22,8 @@ const assert = (condition, message) => { if (!condition) throw new Error(message
 const productsResponse = await fetch(`${baseUrl}/api/products`);
 const productsPayload = await productsResponse.json();
 const product = productsPayload.products?.[0];
-assert(product?.id && product.sizes?.[0], 'A seeded product with at least one size is required.');
+const availableSize = product?.sizes?.find((size) => !product.outOfStockSizes?.includes(size));
+assert(product?.id && availableSize, 'A seeded product with at least one available size is required.');
 
 const payload = {
   fullName: 'Phase Seven Local Test',
@@ -37,7 +38,7 @@ const payload = {
   totalEGP: -999999,
   items: [{
     productId: product.id,
-    size: product.sizes[0],
+    size: availableSize,
     quantity: 2,
     name: 'SPOOFED NAME',
     code: 'SPOOFED',
@@ -57,9 +58,10 @@ assert(order.shippingFeeEGP === 0, 'Cairo shipping should be free.');
 assert(order.totalEGP === product.priceEGP * 2, 'Server accepted a client-spoofed total.');
 
 for (const [label, item, status] of [
-  ['quantity', { productId: product.id, size: product.sizes[0], quantity: 0 }, 400],
-  ['product', { productId: 'missing-product', size: product.sizes[0], quantity: 1 }, 422],
+  ['quantity', { productId: product.id, size: availableSize, quantity: 0 }, 400],
+  ['product', { productId: 'missing-product', size: availableSize, quantity: 1 }, 422],
   ['size', { productId: product.id, size: 'INVALID', quantity: 1 }, 422],
+  ...(product.outOfStockSizes?.[0] ? [['stock', { productId: product.id, size: product.outOfStockSizes[0], quantity: 1 }, 422]] : []),
 ]) {
   const invalid = await fetch(`${baseUrl}/api/checkout`, {
     method: 'POST',

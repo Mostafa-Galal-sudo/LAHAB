@@ -18,8 +18,9 @@ wishlistRouter.post('/', async (c) => {
   const deviceId = c.get('deviceId');
   const { productId, size } = await c.req.json().catch(() => ({}) as any);
 
-  const product = await c.env.DB.prepare('SELECT 1 FROM products WHERE id = ?').bind(productId).first();
-  if (!product || !size) {
+  const product = await c.env.DB.prepare('SELECT sizes FROM products WHERE id = ?').bind(productId).first<{ sizes: string }>();
+  const sizes = product ? JSON.parse(product.sizes) as string[] : [];
+  if (!product || typeof size !== 'string' || !sizes.includes(size)) {
     return c.json({ success: false, error: 'Invalid product or size.' }, 400);
   }
 
