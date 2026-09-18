@@ -179,6 +179,7 @@ export default function App() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isOrdersOpen, setIsOrdersOpen] = useState(false);
   const [isFitVisualizerOpen, setIsFitVisualizerOpen] = useState(false);
+  const [fitVisualizerProductId, setFitVisualizerProductId] = useState<ProductId>();
   const [isMonogramOpen, setIsMonogramOpen] = useState(false);
   const [isOutfitStudioOpen, setIsOutfitStudioOpen] = useState(false);
   const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -334,7 +335,10 @@ export default function App() {
     onAddToCart: handleAddToCart,
     onToggleWishlist: handleToggleSave,
     onOpenMonogram: handleOpenMonogramModal,
-    onOpenFitVisualizer: () => setIsFitVisualizerOpen(true),
+    onOpenFitVisualizer: (productId) => {
+      setFitVisualizerProductId(productId);
+      setIsFitVisualizerOpen(true);
+    },
     onOpenReviews: handleOpenReviews,
     onSelectViewerProduct: handleSelectViewerProduct,
     onOpenSizeGuide: () => setIsSizingOpen(true),
@@ -507,11 +511,16 @@ export default function App() {
       {/* Feature 2: Interactive Smart Fit & Drape Visualizer Modal */}
       <SmartFitVisualizerModal
         isOpen={isFitVisualizerOpen}
-        onClose={() => setIsFitVisualizerOpen(false)}
-        language={language}
-        onSelectRecommendedSize={(product, size) => {
-          handleAddToCart(product, size);
+        onClose={() => {
           setIsFitVisualizerOpen(false);
+          setFitVisualizerProductId(undefined);
+        }}
+        language={language}
+        onSelectSize={(size) => {
+          const product = products.find((item) => item.id === fitVisualizerProductId);
+          if (product) handleAddToCart(product, size);
+          setIsFitVisualizerOpen(false);
+          setFitVisualizerProductId(undefined);
         }}
       />
 

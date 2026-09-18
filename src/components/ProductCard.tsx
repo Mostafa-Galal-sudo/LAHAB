@@ -8,7 +8,7 @@ interface ProductCardProps {
   product: ProductItem;
   onAddToCart: (product: ProductItem, size: GarmentSize) => void;
   onOpenMonogram?: (product: ProductItem, size: GarmentSize) => void;
-  onOpenFitVisualizer?: () => void;
+  onOpenFitVisualizer?: (productId: ProductId) => void;
   onOpenReviews?: (productId: ProductId) => void;
   onViewIn3D?: (productId: ProductId) => void;
   onEditImage?: (product: ProductItem) => void;
@@ -394,7 +394,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               {onOpenFitVisualizer && (
                 <button
                   type="button"
-                  onClick={onOpenFitVisualizer}
+                  onClick={() => onOpenFitVisualizer(product.id)}
                   className="inline-flex items-center gap-1 text-[11px] font-mono text-[#D8A065] hover:underline cursor-pointer"
                 >
                   <Ruler className="w-3 h-3" />

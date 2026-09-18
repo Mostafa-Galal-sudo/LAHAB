@@ -9,7 +9,7 @@ interface ProductShowcaseProps {
   reviews?: ProductReview[];
   onAddToCart: (product: ProductItem, size: GarmentSize) => void;
   onOpenMonogram?: (product: ProductItem, size: GarmentSize) => void;
-  onOpenFitVisualizer?: () => void;
+  onOpenFitVisualizer?: (productId: ProductId) => void;
   onOpenReviews?: (productId: ProductId) => void;
   onViewIn3D?: (productId: ProductId) => void;
   savedProductIds?: string[];

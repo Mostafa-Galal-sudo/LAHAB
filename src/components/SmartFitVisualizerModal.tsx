@@ -24,8 +24,6 @@ export const SmartFitVisualizerModal: React.FC<SmartFitVisualizerModalProps> = (
   const [build, setBuild] = useState<'slim' | 'athletic' | 'broad'>('athletic');
   const [drapePreference, setDrapePreference] = useState<'boxy' | 'relaxed' | 'standard'>('boxy');
 
-  if (!isOpen) return null;
-
   // Sizing Algorithm specifically designed for 520 GSM Heavyweight & 290 GSM Combed Drop-Shoulder Patterns
   const recommendation = useMemo(() => {
     // Base score from BMI approximation and height
@@ -74,6 +72,9 @@ export const SmartFitVisualizerModal: React.FC<SmartFitVisualizerModalProps> = (
     onSelectSize(recommendation.size);
     onClose();
   };
+
+  // Hooks must run in the same order while the always-mounted modal toggles open/closed.
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
