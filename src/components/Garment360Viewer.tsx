@@ -539,7 +539,7 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
   return (
     <section
       id="drape-360"
-      className="bg-[#09111C] text-[#E2E6E8] px-4 sm:px-8 lg:px-16 py-24 border-t border-[#E2E6E8]/20 relative overflow-hidden"
+      className="bg-[#09111C] text-[#E2E6E8] px-4 sm:px-8 lg:px-16 py-20 sm:py-24 border-t border-[#E2E6E8]/20 relative overflow-hidden"
     >
       <div className="max-w-6xl mx-auto relative z-10">
         {/* Section Header */}
@@ -561,11 +561,11 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
         </div>
 
         {/* 360 3D Visual Stage with Luxury Pedestal Styling */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center glass-card-luxury border-2 border-[#D8A065]/50 p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 lg:gap-8 items-center glass-card-luxury border border-[#D8A065]/40 p-4 sm:p-8 lg:p-10 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-[radial-gradient(circle,rgba(216,160,101,0.15),transparent_70%)] pointer-events-none" />
           {/* Left / Center Stage: Three.js Canvas Container */}
           <div
-            className="lg:col-span-7 flex flex-col items-center justify-center relative min-h-105 sm:min-h-125 select-none rounded-lg overflow-hidden border border-[#E2E6E8]/20 bg-[#0A1422] transition-colors"
+            className="lg:col-span-7 flex flex-col items-center justify-center relative min-h-[22.5rem] sm:min-h-125 select-none rounded-sm overflow-hidden border border-[#E2E6E8]/15 bg-[#0A1422] transition-colors shadow-[inset_0_0_40px_rgba(0,0,0,0.24)]"
             onMouseDown={(e) => handlePointerDown(e.clientX)}
             onMouseMove={(e) => handlePointerMove(e.clientX)}
             onMouseUp={handlePointerUp}
@@ -582,7 +582,7 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
             <div ref={canvasContainerRef} className={`w-full h-full min-h-105 sm:min-h-125 ${schemaContent?.allowManualOrbit === false ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'}`} />
 
             {/* Floating Top Bar with Orbit Status & Angle */}
-            <div className="absolute top-3 inset-x-3 flex items-center justify-between pointer-events-none z-20">
+            <div className="absolute top-3 inset-x-3 flex flex-wrap items-center justify-between gap-2 pointer-events-none z-20">
               <div className="bg-[#0D1929]/90 border border-[#D8A065] px-3 py-1 font-mono text-xs text-[#D8A065] shadow-lg flex items-center gap-2 backdrop-blur-md">
                 <span className="w-2 h-2 rounded-full bg-[#D8A065] animate-ping" />
                 <span>{angle}° ORBIT PERSPECTIVE</span>
@@ -630,7 +630,7 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
             )}
 
             {/* Controls Toolbar: Auto-Orbit, Zoom & Switch Mode */}
-            <div className="absolute bottom-3 inset-x-3 flex items-center justify-between pointer-events-none z-20">
+            <div className="absolute bottom-3 inset-x-3 flex flex-wrap items-end justify-between gap-2 pointer-events-none z-20">
               <div className="pointer-events-auto flex items-center gap-1.5 bg-[#0D1929]/95 border border-[#E2E6E8]/20 p-1">
                 <button
                   type="button"

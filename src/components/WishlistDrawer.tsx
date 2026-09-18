@@ -50,7 +50,7 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({
             className="w-screen max-w-md bg-[#0D1929] border-l border-[#D8A065]/40 shadow-2xl flex flex-col justify-between"
           >
             {/* Drawer Header */}
-            <div className="p-6 border-b border-[#E2E6E8]/20 bg-[#132238]/60 flex items-center justify-between">
+            <div className="p-4 sm:p-6 border-b border-[#E2E6E8]/20 bg-[#132238]/60 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 border border-[#D8A065] flex items-center justify-center bg-[#0D1929] text-[#D8A065]">
                   <Heart className="w-4 h-4 fill-[#D8A065]" />
@@ -75,7 +75,7 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({
             </div>
 
             {/* Content List */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
               {savedItems.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-4">
                   <div className="w-16 h-16 rounded-full border border-[#D8A065]/30 flex items-center justify-center text-[#D8A065] bg-[#132238]">
@@ -159,7 +159,7 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({
 
             {/* Footer */}
             {savedItems.length > 0 && (
-              <div className="p-6 border-t border-[#E2E6E8]/20 bg-[#132238]/60 space-y-3">
+              <div className="p-4 sm:p-6 border-t border-[#E2E6E8]/20 bg-[#132238]/60 space-y-3">
                 <button
                   onClick={() => {
                     savedItems.forEach((item) => {

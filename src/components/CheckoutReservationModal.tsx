@@ -372,15 +372,15 @@ export const CheckoutReservationModal: React.FC<CheckoutReservationModalProps> =
         className="relative w-full max-w-5xl bg-[#0D1929] border border-[#D8A065]/60 shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden my-auto max-h-[92vh] flex flex-col"
       >
         {/* Header */}
-        <div className="p-6 border-b border-[#E2E6E8]/20 bg-[#132238] flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-4">
-            <Wordmark size="sm" showMedallion={false} />
-            <div className="h-4 w-[1px] bg-[#E2E6E8]/30" />
-            <div>
-              <span className="font-heading text-[10px] text-[#D8A065] tracking-[0.25em] uppercase block">
+        <div className="p-4 sm:p-6 border-b border-[#E2E6E8]/20 bg-[#132238] flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+            <div className="hidden sm:block"><Wordmark size="sm" showMedallion={false} /></div>
+            <div className="hidden sm:block h-4 w-[1px] bg-[#E2E6E8]/30" />
+            <div className="min-w-0">
+              <span className="font-heading text-[9px] sm:text-[10px] text-[#D8A065] tracking-[0.16em] sm:tracking-[0.25em] uppercase block truncate">
                 {isArabic ? 'بوابة الحجز المعتمدة // EGYPT & GCC' : 'DROP 01 CHECKOUT // EGYPT & GCC'}
               </span>
-              <h2 className="font-heading text-xl sm:text-2xl text-[#E2E6E8] tracking-wide mt-0.5">
+              <h2 className="font-heading text-lg sm:text-2xl text-[#E2E6E8] tracking-wide leading-tight mt-0.5 truncate">
                 {isArabic ? 'إتمام حجز القطع والشحن' : 'Dispatch Order & Allocation'}
               </h2>
             </div>
@@ -388,7 +388,7 @@ export const CheckoutReservationModal: React.FC<CheckoutReservationModalProps> =
 
           <button
             onClick={handleClose}
-            className="p-2 text-[#E2E6E8]/70 hover:text-[#D8A065] border border-transparent hover:border-[#D8A065]/40 transition-colors cursor-pointer"
+            className="p-2 shrink-0 text-[#E2E6E8]/70 hover:text-[#D8A065] border border-transparent hover:border-[#D8A065]/40 transition-colors cursor-pointer"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -396,7 +396,7 @@ export const CheckoutReservationModal: React.FC<CheckoutReservationModalProps> =
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="p-6 sm:p-8 overflow-y-auto flex-1">
+        <div className="p-4 sm:p-8 overflow-y-auto flex-1">
           {isSuccess ? (
             /* =================== SUCCESS / ORDER CONFIRMATION VIEW =================== */
             <div className="max-w-2xl mx-auto text-center space-y-6 py-4">

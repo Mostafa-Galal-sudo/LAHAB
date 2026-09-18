@@ -32,7 +32,7 @@ export const SizeGuideModal: React.FC<SizeGuideModalProps> = ({
 
       <div
         id="size-guide-modal"
-        className="relative z-10 w-full max-w-2xl bg-[#0D1929] border border-[#E2E6E8]/20 p-6 sm:p-8 text-[#E2E6E8] shadow-2xl space-y-6"
+        className="relative z-10 w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-[#0D1929] border border-[#E2E6E8]/20 p-4 sm:p-8 text-[#E2E6E8] shadow-2xl space-y-5 sm:space-y-6"
       >
         <div className="flex items-center justify-between border-b border-[#E2E6E8]/20 pb-4">
           <div>

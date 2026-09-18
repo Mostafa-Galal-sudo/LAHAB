@@ -29,14 +29,14 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoggedIn }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0D1929] text-[#E2E6E8] flex items-center justify-center px-4 font-body">
-      <div className="w-full max-w-sm border border-[#D8A065]/40 bg-[#132238]/50 p-8 space-y-6">
+    <div className="admin-shell min-h-screen bg-[#0D1929] text-[#E2E6E8] flex items-center justify-center px-4 py-8 font-body">
+      <div className="admin-auth-card w-full max-w-sm border border-[#D8A065]/35 bg-[#132238]/60 p-7 sm:p-8 space-y-6">
         <div className="flex justify-center">
           <Wordmark size="sm" showMedallion={false} />
         </div>
         <div className="text-center space-y-1">
           <h1 className="font-heading text-lg text-[#D8A065] uppercase tracking-wider">Admin Panel</h1>
-          <p className="text-xs text-[#E2E6E8]/60">Sign in to manage products</p>
+          <p className="text-xs leading-relaxed text-[#E2E6E8]/60">Sign in to manage the atelier storefront</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -53,7 +53,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoggedIn }) => {
               autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-[#0D1929] border border-[#E2E6E8]/30 px-3.5 py-2.5 text-sm text-[#E2E6E8] focus:outline-none focus:border-[#D8A065]"
+              className="admin-field w-full bg-[#0D1929] border border-[#E2E6E8]/25 px-3.5 py-3 text-sm text-[#E2E6E8]"
             />
           </div>
 
@@ -66,7 +66,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoggedIn }) => {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[#0D1929] border border-[#E2E6E8]/30 px-3.5 py-2.5 text-sm text-[#E2E6E8] focus:outline-none focus:border-[#D8A065]"
+              className="admin-field w-full bg-[#0D1929] border border-[#E2E6E8]/25 px-3.5 py-3 text-sm text-[#E2E6E8]"
             />
           </div>
 

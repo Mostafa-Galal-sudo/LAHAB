@@ -331,7 +331,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
   return (
     <section
       id="reviews"
-      className="bg-[#0B1524] text-[#E2E6E8] px-4 sm:px-8 lg:px-16 py-24 border-t border-[#E2E6E8]/20 relative overflow-hidden"
+      className="bg-[#0B1524] text-[#E2E6E8] px-4 sm:px-8 lg:px-16 py-20 sm:py-24 border-t border-[#E2E6E8]/20 relative overflow-hidden"
     >
       <div className="max-w-6xl mx-auto space-y-12 relative z-10">
         {/* Section Header */}

@@ -68,7 +68,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             className="relative z-10 w-full max-w-lg bg-[#0A1320] border-l border-[#D8A065]/40 flex flex-col justify-between h-full text-[#E2E6E8] shadow-[0_0_60px_rgba(0,0,0,0.9)]"
           >
             {/* Glossy Header Bar */}
-            <div className="p-6 border-b border-[#E2E6E8]/15 bg-[#0D1929]/90 flex items-center justify-between shrink-0 relative backdrop-blur-xl">
+            <div className="p-4 sm:p-6 border-b border-[#E2E6E8]/15 bg-[#0D1929]/90 flex items-center justify-between shrink-0 relative backdrop-blur-xl">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 border border-[#D8A065]/50 bg-[#132238] flex items-center justify-center text-[#D8A065] shadow-lg">
                   <ShoppingBag className="w-5 h-5" />
@@ -96,7 +96,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             </div>
 
             {/* Scrollable Content Body */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
               {items.length === 0 ? (
                 <div className="py-20 text-center space-y-5">
                   <div className="w-16 h-16 rounded-full border border-[#D8A065]/40 bg-[#132238]/60 flex items-center justify-center mx-auto text-[#D8A065]">
@@ -210,7 +210,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
             {/* Footer Summary & Checkout CTA */}
             {items.length > 0 && (
-              <div className="p-6 border-t border-[#E2E6E8]/20 bg-[#0D1929]/95 space-y-4 shrink-0 backdrop-blur-md">
+              <div className="p-4 sm:p-6 border-t border-[#E2E6E8]/20 bg-[#0D1929]/95 space-y-4 shrink-0 backdrop-blur-md">
                 {/* Shipping & Vault Perks Highlights */}
                 <div className="p-3 bg-[#132238]/70 border border-[#D8A065]/40 text-xs space-y-1.5 font-mono">
                   <div className="flex items-center justify-between text-[#D8A065]">
@@ -258,4 +258,3 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 };
 
 export default CartDrawer;
-

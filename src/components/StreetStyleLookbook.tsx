@@ -116,7 +116,7 @@ export const StreetStyleLookbook: React.FC<StreetStyleLookbookProps> = ({
   return (
     <section
       id="street-style"
-      className="bg-[#0D1929] text-[#E2E6E8] px-4 sm:px-8 lg:px-16 py-28 border-t border-[#E2E6E8]/20 relative overflow-hidden"
+      className="bg-[#0D1929] text-[#E2E6E8] px-4 sm:px-8 lg:px-16 py-20 sm:py-28 border-t border-[#E2E6E8]/20 relative overflow-hidden"
     >
       <div className="max-w-6xl mx-auto relative z-10">
         {/* Header */}

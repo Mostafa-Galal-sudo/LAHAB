@@ -396,7 +396,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ language, schema
   return (
     <section
       id="contact"
-      className="bg-[#0A1320] text-[#E2E6E8] px-4 sm:px-8 lg:px-16 py-28 border-t border-[#E2E6E8]/20 relative overflow-hidden"
+      className="bg-[#0A1320] text-[#E2E6E8] px-4 sm:px-8 lg:px-16 py-20 sm:py-28 border-t border-[#E2E6E8]/20 relative overflow-hidden"
     >
       {/* Subtle Background Elements */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-[#D8A065]/5 rounded-full blur-3xl pointer-events-none" />

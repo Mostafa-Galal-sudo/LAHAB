@@ -90,16 +90,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ username, onLogg
   };
 
   return (
-    <div className="min-h-screen bg-[#0D1929] text-[#E2E6E8] font-body">
-      <header className="border-b border-[#E2E6E8]/15 px-5 sm:px-8 py-4 flex items-center justify-between bg-[#132238]/60 backdrop-blur-md sticky top-0 z-40">
-        <div className="flex items-center gap-4">
+    <div className="admin-shell min-h-screen bg-[#0D1929] text-[#E2E6E8] font-body">
+      <header className="admin-topbar border-b border-[#E2E6E8]/15 px-4 sm:px-8 py-3.5 sm:py-4 flex flex-wrap items-center justify-between gap-3 bg-[#132238]/70 backdrop-blur-md sticky top-0 z-40">
+        <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
           <Wordmark size="sm" showMedallion={false} />
           <div className="h-4 w-[1px] bg-[#E2E6E8]/30" />
           <span className="text-xs font-heading text-[#D8A065] tracking-widest uppercase">
             {isArabic ? 'لوحة تحكم الأتيليه' : 'ATELIER CONTROL DASHBOARD'}
           </span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <button
             onClick={() => setLanguage((prev) => (prev === 'en' ? 'ar' : 'en'))}
             className="border border-[#D8A065] px-3 py-1 text-xs font-heading text-[#D8A065] bg-[#0D1929] hover:bg-[#D8A065] hover:text-[#0D1929] transition-all cursor-pointer font-bold"
@@ -116,7 +116,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ username, onLogg
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-5 sm:px-8 py-10 space-y-6">
+      <main className="admin-workspace max-w-6xl mx-auto px-4 sm:px-8 py-7 sm:py-10 space-y-6">
         {notice && (
           <div className="p-3 border border-[#D8A065]/40 bg-[#D8A065]/10 text-[#D8A065] text-xs flex items-center justify-between font-mono">
             <span>✓ {notice}</span>
@@ -158,7 +158,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ username, onLogg
         {view.mode === 'list' && (
           <>
             {/* Top Navigation Tabs */}
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E2E6E8]/15 pb-4">
+            <div className="admin-tabs flex flex-wrap items-center justify-between gap-4 border-b border-[#E2E6E8]/15 pb-4">
               <div className="flex items-center gap-3 sm:gap-6 flex-wrap">
                 <button
                   onClick={() => setTab('pieces')}
@@ -239,7 +239,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ username, onLogg
                   {products.map((p) => (
                     <div key={p.id} className="relative group space-y-3">
                       {/* Top Action Overlay Bar */}
-                      <div className="flex items-center justify-between p-3 bg-[#132238] border border-[#D8A065]/40 font-heading text-xs uppercase">
+                      <div className="admin-surface flex flex-wrap items-center justify-between gap-3 p-3 bg-[#132238] border border-[#D8A065]/35 font-heading text-xs uppercase">
                         <span className="text-[#D8A065] font-bold">[{p.code}] {p.name[language] || p.name.en}</span>
                         <div className="flex items-center gap-2">
                           <button
@@ -300,7 +300,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ username, onLogg
                   <p className="text-sm text-[#E2E6E8]/50">No customer reviews recorded in database yet.</p>
                 ) : (
                   reviews.map((rev) => (
-                    <div key={rev.id} className="p-5 border border-[#E2E6E8]/15 bg-[#132238]/40 space-y-3">
+                    <div key={rev.id} className="admin-surface p-5 border border-[#E2E6E8]/15 bg-[#132238]/40 space-y-3">
                       <div className="flex items-center justify-between border-b border-[#E2E6E8]/10 pb-3">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
@@ -335,7 +335,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ username, onLogg
                   <p className="text-sm text-[#E2E6E8]/50">No orders or inquiries recorded in database yet.</p>
                 ) : (
                   inquiries.map((inq, idx) => (
-                    <div key={inq.id || idx} className="p-5 border border-[#D8A065]/30 bg-[#132238]/50 space-y-3">
+                    <div key={inq.id || idx} className="admin-surface p-5 border border-[#D8A065]/30 bg-[#132238]/50 space-y-3">
                       <div className="flex justify-between items-start border-b border-[#E2E6E8]/10 pb-3">
                         <div>
                           <span className="font-mono text-xs text-[#D8A065] font-bold block">REF: {inq.id}</span>

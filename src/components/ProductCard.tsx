@@ -81,25 +81,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div
       id={`product-card-${product.id}`}
-      className="glass-card-luxury border-2 border-[#D8A065]/40 flex flex-col justify-between card-hover-alive relative overflow-hidden group shadow-2xl rounded-sm"
+      className="glass-card-luxury border border-[#D8A065]/40 flex flex-col justify-between card-hover-alive relative overflow-hidden group rounded-sm"
     >
       {/* Engraved Gold Accent Border Line */}
       <div className="absolute inset-1 border border-[#D8A065]/20 pointer-events-none z-10" />
       {/* Product Card Top Bar */}
       <div className="p-4 sm:p-6 border-b border-[#E2E6E8]/20 bg-[#132238]/40 space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
             <span className="font-heading text-xs tracking-widest text-[#D8A065] block">
               {product.code}
             </span>
-            <h3 className="font-heading text-xl sm:text-2xl text-[#D8A065] tracking-wide mt-0.5">
+            <h3 className="font-heading text-lg sm:text-2xl text-[#D8A065] tracking-wide leading-tight mt-1 text-balance">
               {product.name[language]}
             </h3>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <div className="text-right">
-              <span className="font-heading text-xl text-[#E2E6E8]">
+              <span className="font-heading text-base sm:text-xl text-[#E2E6E8] whitespace-nowrap">
                 {isArabic
                   ? `${product.priceEGP.toLocaleString('ar-EG')} ج.م`
                   : `${product.priceEGP.toLocaleString()} EGP`}
@@ -144,7 +144,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             if (el) el.scrollIntoView({ behavior: 'smooth' });
             onOpenReviews?.(product.id);
           }}
-          className="pt-1 flex items-center justify-between gap-2 cursor-pointer group select-none"
+          className="pt-1 flex flex-wrap items-center justify-between gap-2 cursor-pointer group select-none"
           title={isArabic ? 'عرض تقييمات وآراء العملاء' : 'View customer star reviews & comments'}
         >
           <div className="flex items-center gap-2">
@@ -335,8 +335,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* View Details Label at bottom of visual */}
-        <div className="absolute bottom-3 inset-x-4 flex items-center justify-between text-xs font-body text-[#E2E6E8] z-30">
-          <span className="bg-[#0D1929]/80 backdrop-blur-sm px-2.5 py-0.5 border border-[#E2E6E8]/30">
+        <div className="absolute bottom-3 inset-x-3 sm:inset-x-4 flex items-center justify-between gap-2 text-xs font-body text-[#E2E6E8] z-30">
+          <span className="min-w-0 truncate bg-[#0D1929]/80 backdrop-blur-sm px-2.5 py-0.5 border border-[#E2E6E8]/30">
             {showEditorial
               ? (isArabic ? 'إطلالة حية في الاستوديو' : 'EDITORIAL ON-BODY PRESENTATION')
               : activeView === 'front'
@@ -345,7 +345,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </span>
           <button
             onClick={() => setShowSpecs(!showSpecs)}
-            className="bg-[#0D1929]/90 backdrop-blur-sm px-3 py-1 border border-[#D8A065] text-[#D8A065] font-bold cursor-pointer hover:bg-[#D8A065] hover:text-[#0D1929] transition-colors"
+            className="shrink-0 bg-[#0D1929]/90 backdrop-blur-sm px-3 py-1 border border-[#D8A065] text-[#D8A065] font-bold cursor-pointer hover:bg-[#D8A065] hover:text-[#0D1929] transition-colors"
           >
             {showSpecs ? t.hideSpecs : t.viewSpecs}
           </button>
@@ -355,21 +355,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       {/* Specifications Drawer */}
       {showSpecs && (
         <div className="p-4 sm:p-6 bg-[#132238]/80 border-b border-[#E2E6E8]/20 space-y-2 text-xs font-body animate-fade-in">
-          <div className="flex justify-between py-1 border-b border-[#E2E6E8]/10">
+          <div className="flex justify-between gap-4 py-1 border-b border-[#E2E6E8]/10">
             <span className="text-[#D8A065] font-bold">{isArabic ? 'المادة:' : 'MATERIAL:'}</span>
-            <span className="text-[#E2E6E8]">{product.material[language]}</span>
+            <span className="text-[#E2E6E8] text-right">{product.material[language]}</span>
           </div>
-          <div className="flex justify-between py-1 border-b border-[#E2E6E8]/10">
+          <div className="flex justify-between gap-4 py-1 border-b border-[#E2E6E8]/10">
             <span className="text-[#D8A065] font-bold">{isArabic ? 'الوزن النسيجي:' : 'WEIGHT:'}</span>
             <span className="text-[#E2E6E8]">{product.weight}</span>
           </div>
-          <div className="flex justify-between py-1 border-b border-[#E2E6E8]/10">
+          <div className="flex justify-between gap-4 py-1 border-b border-[#E2E6E8]/10">
             <span className="text-[#D8A065] font-bold">{isArabic ? 'القالب والقصة:' : 'SILHOUETTE:'}</span>
-            <span className="text-[#E2E6E8]">{product.fit[language]}</span>
+            <span className="text-[#E2E6E8] text-right">{product.fit[language]}</span>
           </div>
-          <div className="flex justify-between py-1">
+          <div className="flex justify-between gap-4 py-1">
             <span className="text-[#D8A065] font-bold">{isArabic ? 'العناية:' : 'CARE:'}</span>
-            <span className="text-[#E2E6E8]">
+            <span className="text-[#E2E6E8] text-right">
               {isArabic ? 'غسيل آلي بماء بارد ومقلوبًا، تجفيف بالتعليق' : 'Machine wash cold inside out, hang dry'}
             </span>
           </div>
@@ -384,11 +384,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Size Selector */}
         <div>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-2">
             <span className="font-heading text-xs text-[#D8A065] tracking-wider">
               {t.selectSize}
             </span>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {onOpenFitVisualizer && (
                 <button
                   type="button"

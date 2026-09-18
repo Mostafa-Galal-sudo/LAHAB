@@ -56,7 +56,7 @@ export const ProductShowcase: React.FC<ProductShowcaseProps> = ({
   return (
     <section
       id="products"
-      className="bg-[#0D1929] text-[#E2E6E8] px-6 sm:px-10 lg:px-16 py-28 border-t border-[#E2E6E8]/20 relative overflow-hidden"
+      className="bg-[#0D1929] text-[#E2E6E8] px-5 sm:px-10 lg:px-16 py-20 sm:py-28 border-t border-[#E2E6E8]/20 relative overflow-hidden"
     >
       {/* Background atmosphere */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-[#D8A065]/5 rounded-full blur-3xl pointer-events-none" />

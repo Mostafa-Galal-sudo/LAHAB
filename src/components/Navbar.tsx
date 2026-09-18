@@ -59,10 +59,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <nav
       id="main-nav"
-      className="fixed top-0 inset-x-0 z-50 bg-[#0D1929]/95 backdrop-blur-md border-b border-[#E2E6E8]/20 px-4 sm:px-8 lg:px-12 h-18 flex items-center justify-between select-none transition-colors"
+      className="fixed top-0 inset-x-0 z-50 bg-[#0D1929]/95 backdrop-blur-md border-b border-[#E2E6E8]/20 px-3 sm:px-8 lg:px-12 h-16 sm:h-18 flex items-center justify-between gap-2 select-none transition-colors"
     >
       {/* Left: Brand Wordmark */}
-      <a href="#hero" className="flex items-center gap-3 group">
+      <a href="#hero" className="flex items-center gap-3 group shrink-0">
         <Wordmark size="sm" showMedallion={true} />
       </a>
 
@@ -96,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Right Controls: Mobile Menu Toggle, Theme Switcher, Wishlist, Language Button, Currency, Bag */}
-      <div className="flex items-center gap-2 sm:gap-2.5">
+      <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
         {/* Mobile Menu Toggle - only shown below the lg breakpoint where the
             center nav links are hidden */}
         <button
@@ -114,7 +114,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={onToggleTheme}
           aria-label={t.themeToggleAlt}
           title={isDesert ? `${t.themeToggleNavy} (Dark)` : `${t.themeToggleDesert} (Light)`}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 border border-[#D8A065]/60 hover:border-[#D8A065] bg-[#0D1929] hover:bg-[#D8A065]/10 text-[#D8A065] transition-all cursor-pointer select-none active:scale-95 group"
+          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 border border-[#D8A065]/60 hover:border-[#D8A065] bg-[#0D1929] hover:bg-[#D8A065]/10 text-[#D8A065] transition-all cursor-pointer select-none active:scale-95 group"
         >
           {isDesert ? (
             <>
@@ -137,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {onOpenWishlist && (
           <button
             onClick={onOpenWishlist}
-            className="p-2 border border-[#E2E6E8]/20 text-[#E2E6E8]/80 hover:text-[#D8A065] hover:border-[#D8A065]/60 transition-colors relative cursor-pointer"
+            className="hidden sm:inline-flex p-2 border border-[#E2E6E8]/20 text-[#E2E6E8]/80 hover:text-[#D8A065] hover:border-[#D8A065]/60 transition-colors relative cursor-pointer"
             title={isArabic ? 'القطع المحفوظة' : 'Saved Pieces'}
           >
             <Heart className={`w-4 h-4 ${wishlistCount > 0 ? 'fill-[#D8A065] text-[#D8A065]' : ''}`} />
@@ -153,7 +153,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {onOpenOrders && (
           <button
             onClick={onOpenOrders}
-            className="p-2 border border-[#E2E6E8]/20 text-[#E2E6E8]/80 hover:text-[#D8A065] hover:border-[#D8A065]/60 transition-colors cursor-pointer"
+            className="hidden sm:inline-flex p-2 border border-[#E2E6E8]/20 text-[#E2E6E8]/80 hover:text-[#D8A065] hover:border-[#D8A065]/60 transition-colors cursor-pointer"
             title={isArabic ? 'طلباتي ومتابعة التتبع' : 'My Orders & Tracking'}
           >
             <Package className="w-4 h-4 text-[#D8A065]" />
@@ -165,12 +165,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           id="lang-translation-button"
           onClick={onToggleLanguage}
           title={t.langButtonAlt}
-          className="relative flex items-center gap-1.5 sm:gap-2 border border-[#D8A065] px-2.5 sm:px-3 py-1.5 text-xs font-heading tracking-wider text-[#D8A065] bg-[#0D1929] hover:bg-[#D8A065] hover:text-[#0D1929] transition-all cursor-pointer shadow-sm active:scale-95"
+          className="relative flex items-center gap-1.5 sm:gap-2 border border-[#D8A065] px-2 sm:px-3 py-1.5 text-xs font-heading tracking-wider text-[#D8A065] bg-[#0D1929] hover:bg-[#D8A065] hover:text-[#0D1929] transition-all cursor-pointer shadow-sm active:scale-95"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-[#D8A065] group-hover:bg-[#0D1929]" />
-          <span className="font-bold text-[11px] sm:text-xs">
-            {language === 'en' ? 'العربية // AR' : 'ENGLISH // EN'}
-          </span>
+          <span className="font-bold text-[11px] sm:hidden">{language === 'en' ? 'AR' : 'EN'}</span>
+          <span className="hidden sm:inline font-bold text-xs">{language === 'en' ? 'العربية // AR' : 'ENGLISH // EN'}</span>
         </button>
 
         {/* Clickable Currency Indicator & Region Selector */}
@@ -186,9 +185,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           id="nav-bag-button"
           onClick={onOpenCart}
-          className="btn-lahab-primary px-3 sm:px-4 py-2 text-xs flex items-center gap-2 cursor-pointer"
+          className="btn-lahab-primary px-2.5 sm:px-4 py-2 text-xs flex items-center gap-1.5 sm:gap-2 cursor-pointer shrink-0"
         >
-          <span className="font-heading font-bold">{t.bag}</span>
+          <ShoppingBag className="w-4 h-4 sm:hidden" aria-hidden="true" />
+          <span className="hidden sm:inline font-heading font-bold">{t.bag}</span>
           <span className="bg-[#0D1929] text-[#D8A065] px-1.5 py-0.2 text-[11px] font-mono font-bold rounded-xs">
             {cartCount}
           </span>
@@ -201,6 +201,30 @@ export const Navbar: React.FC<NavbarProps> = ({
       {isMobileMenuOpen && (
         <div className="lg:hidden absolute top-full inset-x-0 bg-[#0D1929] border-b border-[#E2E6E8]/20 shadow-xl max-h-[calc(100vh-4.5rem)] overflow-y-auto">
           <div className="flex flex-col divide-y divide-[#E2E6E8]/10">
+            <div className="sm:hidden grid grid-cols-2 gap-2 p-3 border-b border-[#E2E6E8]/10">
+              <button onClick={onToggleTheme} className="mobile-nav-action">
+                {isDesert ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                <span>{isArabic ? 'المظهر' : 'Theme'}</span>
+              </button>
+              {onOpenWishlist && (
+                <button onClick={() => { onOpenWishlist(); closeMobileMenu(); }} className="mobile-nav-action">
+                  <Heart className={`w-4 h-4 ${wishlistCount > 0 ? 'fill-current' : ''}`} />
+                  <span>{isArabic ? 'المحفوظات' : 'Saved'}</span>
+                </button>
+              )}
+              {onOpenOrders && (
+                <button onClick={() => { onOpenOrders(); closeMobileMenu(); }} className="mobile-nav-action">
+                  <Package className="w-4 h-4" />
+                  <span>{isArabic ? 'طلباتي' : 'Orders'}</span>
+                </button>
+              )}
+              {onOpenCurrencyModal && (
+                <button onClick={() => { onOpenCurrencyModal(); closeMobileMenu(); }} className="mobile-nav-action">
+                  <span className="font-mono text-[10px] font-bold">{selectedCurrency}</span>
+                  <span>{isArabic ? 'العملة' : 'Currency'}</span>
+                </button>
+              )}
+            </div>
             {navLinks.map((link) => {
               const Icon = link.icon;
               return (

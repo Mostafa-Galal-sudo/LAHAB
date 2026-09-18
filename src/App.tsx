@@ -361,7 +361,7 @@ export default function App() {
   return (
     <div
       dir={isArabic ? 'rtl' : 'ltr'}
-      className={`min-h-screen bg-[#0D1929] text-[#E2E6E8] flex flex-col font-body selection:bg-[#D8A065] selection:text-[#0D1929] transition-all ${
+      className={`storefront-shell min-h-screen bg-[#0D1929] text-[#E2E6E8] flex flex-col font-body selection:bg-[#D8A065] selection:text-[#0D1929] transition-all ${
         totalCartCount > 0 ? 'pb-20 lg:pb-0' : ''
       }`}
     >

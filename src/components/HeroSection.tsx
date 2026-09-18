@@ -22,7 +22,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   return (
     <header
       id="hero"
-      className="relative min-h-[95vh] flex flex-col justify-between overflow-hidden px-6 sm:px-10 lg:px-16 pt-28 pb-16 bg-[#0D1929]"
+      className="relative min-h-[95svh] flex flex-col justify-between overflow-hidden px-5 sm:px-10 lg:px-16 pt-24 sm:pt-28 pb-12 sm:pb-16 bg-[#0D1929]"
     >
       {/* 
         Hero Background:
@@ -94,13 +94,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       </motion.div>
 
       {/* Hero Content: strictly anchored in the dark quadrant */}
-      <div className="relative z-10 max-w-4xl pt-6 sm:pt-10">
+      <div className="relative z-10 max-w-4xl min-w-0 pt-6 sm:pt-10">
         {/* Drop Badge */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="inline-flex items-center gap-3 border border-[#D8A065]/60 px-4 py-1.5 mb-8 bg-[#0D1929]/80 backdrop-blur-md"
+          className="inline-flex max-w-full items-center gap-2.5 border border-[#D8A065]/60 px-3.5 sm:px-4 py-1.5 mb-7 sm:mb-8 bg-[#0D1929]/80 backdrop-blur-md"
         >
           <span className="w-2 h-2 bg-[#D8A065] animate-pulse" />
           <span className="font-heading text-xs tracking-widest text-[#D8A065]">
@@ -113,7 +113,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-8 -ml-2 max-w-xl"
+          className="mb-7 sm:mb-8 -ml-1 sm:-ml-2 max-w-xl"
         >
           <Wordmark size="hero" showMedallion={true} />
         </motion.div>
@@ -123,7 +123,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="space-y-4 max-w-2xl mb-10"
+          className="space-y-4 max-w-2xl mb-8 sm:mb-10 min-w-0"
         >
           <h1 className="font-heading text-2xl sm:text-4xl lg:text-5xl text-[#D8A065] tracking-wide leading-tight">
             {t.tagline}
@@ -139,12 +139,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-wrap items-center gap-5 pt-2"
+          className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-5 pt-2"
         >
           <button
             id="hero-cta-button"
             onClick={onExploreClick}
-            className="btn-lahab-primary px-8 py-4 text-sm flex items-center gap-3 group cursor-pointer"
+            className="btn-lahab-primary w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 text-sm flex items-center justify-center gap-3 group cursor-pointer"
           >
             <span>{t.ctaShop}</span>
             <span className="font-mono font-bold text-base transition-transform group-hover:translate-x-1">
@@ -154,7 +154,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
           <a
             href="#story"
-            className="btn-lahab-outline px-7 py-4 text-xs font-bold"
+            className="btn-lahab-outline w-full sm:w-auto px-6 sm:px-7 py-3.5 sm:py-4 text-xs font-bold text-center"
           >
             {t.ctaStory}
           </a>
@@ -166,7 +166,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, delay: 0.45 }}
-        className="relative z-10 pt-10 pb-4 flex flex-col items-center justify-center"
+        className="relative z-10 pt-8 sm:pt-10 pb-4 flex flex-col items-center justify-center"
       >
         <a
           href="#products"
@@ -214,7 +214,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.9, delay: 0.4 }}
-        className="relative z-10 pt-8 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 border-t border-[#E2E6E8]/20"
+        className="relative z-10 pt-6 sm:pt-8 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-5 sm:gap-6 border-t border-[#E2E6E8]/20"
       >
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 border border-[#D8A065]/50 flex items-center justify-center bg-[#0D1929]/60">
@@ -230,7 +230,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-8 text-xs font-body tracking-wider text-[#E2E6E8]">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:flex sm:items-center sm:gap-8 text-xs font-body tracking-wider text-[#E2E6E8] w-full sm:w-auto">
           <div>
             <span className="block text-[#D8A065] font-bold">{t.editionLabel}</span>
             <span className="text-[#E2E6E8]/80">{t.editionValue}</span>

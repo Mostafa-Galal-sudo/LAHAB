@@ -251,8 +251,8 @@ const SiteEditor: React.FC = () => {
   if (!page || !history) return <div className="min-h-[60vh] grid place-items-center font-heading text-[#D8A065] tracking-widest">LOADING PAGE WORKSPACE</div>;
 
   return (
-    <section className="fixed inset-x-0 top-[69px] bottom-0 bg-[#070E18] z-30 flex flex-col overflow-hidden" aria-label="Site editor">
-      <div className="h-14 border-b border-[#D8A065]/30 bg-[#0D1929] px-4 flex items-center justify-between gap-4 shrink-0">
+    <section className="site-editor fixed inset-x-0 top-[69px] bottom-0 bg-[#070E18] z-30 flex flex-col overflow-hidden" aria-label="Site editor">
+      <div className="site-editor-toolbar min-h-14 border-b border-[#D8A065]/25 bg-[#0D1929] px-3 sm:px-4 py-2 flex items-center justify-between gap-4 shrink-0 overflow-x-auto">
         <div className="flex items-center gap-2">
           {(['desktop', 'tablet', 'mobile'] as EditorViewport[]).map((device) => {
             const Icon = device === 'desktop' ? Monitor : device === 'tablet' ? Tablet : Smartphone;
@@ -275,12 +275,12 @@ const SiteEditor: React.FC = () => {
 
       {message && <div className="px-4 py-2 bg-[#132238] border-b border-[#E2E6E8]/10 text-xs font-mono flex justify-between"><span>{message}</span>{status === 'conflict' && <button onClick={loadDraft} className="text-[#D8A065] underline">Reload latest draft</button>}</div>}
 
-      <div className="flex-1 grid grid-cols-[260px_minmax(0,1fr)_320px] min-h-0">
-        <aside className="border-r border-[#E2E6E8]/15 bg-[#0D1929] overflow-y-auto p-3" aria-label="Page structure">
+      <div className="site-editor-workspace flex-1 grid grid-cols-[260px_minmax(0,1fr)_320px] min-h-0">
+        <aside className="site-editor-panel border-r border-[#E2E6E8]/15 bg-[#0D1929] overflow-y-auto p-3" aria-label="Page structure">
           <div className="flex justify-between items-center mb-3"><h2 className="font-heading text-xs text-[#D8A065] tracking-widest">PAGE STRUCTURE</h2><span className="text-[10px] font-mono text-[#E2E6E8]/40">{page.sections.length}</span></div>
           <div className="space-y-1">
             {page.sections.map((section, index) => (
-              <div key={section.id} draggable onDragStart={() => setDragIndex(index)} onDragOver={(event) => event.preventDefault()} onDrop={() => { if (dragIndex !== null && dragIndex !== index) moveSection(dragIndex, index); setDragIndex(null); }} className={`group border ${selectedId === section.id ? 'border-[#D8A065] bg-[#D8A065]/10' : 'border-[#E2E6E8]/10 bg-[#132238]/40'}`}>
+              <div key={section.id} draggable onDragStart={() => setDragIndex(index)} onDragOver={(event) => event.preventDefault()} onDrop={() => { if (dragIndex !== null && dragIndex !== index) moveSection(dragIndex, index); setDragIndex(null); }} className={`editor-tree-item group border ${selectedId === section.id ? 'is-selected border-[#D8A065] bg-[#D8A065]/10' : 'border-[#E2E6E8]/10 bg-[#132238]/40'}`}>
                 <button onClick={() => { setSelectedId(section.id); setPreviewOverride(null); }} className="w-full flex items-center gap-2 p-2 text-left"><GripVertical className="w-3.5 h-3.5 text-[#E2E6E8]/30" /><span className="flex-1 text-[11px] font-heading truncate">{section.type}</span><span className="text-[9px] font-mono text-[#E2E6E8]/35">{index + 1}</span></button>
                 <div className="flex border-t border-[#E2E6E8]/10 justify-end p-1 gap-1">
                   <button aria-label={section.visible ? 'Hide section' : 'Show section'} onClick={() => commit(setAtPath(page, ['sections', index, 'visible'], !section.visible))} className="p-1">{section.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}</button>
@@ -295,13 +295,13 @@ const SiteEditor: React.FC = () => {
           <label className="mt-3 flex items-center gap-2 border border-dashed border-[#D8A065]/40 p-2 text-[11px] text-[#D8A065]"><Plus className="w-4 h-4" /><select aria-label="Add section" value="" onChange={(event) => event.target.value && addSection(event.target.value as PageSectionType)} className="bg-transparent flex-1 outline-none"><option value="" className="bg-[#0D1929]">Add section…</option>{SECTION_TYPES.map((type) => <option key={type} value={type} className="bg-[#0D1929]">{type}</option>)}</select></label>
         </aside>
 
-        <main className="bg-[#090F19] overflow-auto p-5 flex justify-center" aria-label="Live website preview">
+        <main className="site-editor-canvas bg-[#090F19] overflow-auto p-4 sm:p-5 flex justify-center" aria-label="Live website preview">
           <div className="h-full transition-[width] duration-300 bg-white shadow-2xl border border-[#D8A065]/25" style={{ width: viewportWidth[viewport], minWidth: viewport === 'desktop' ? '920px' : undefined }}>
             <iframe ref={iframeRef} title="Draft storefront preview" src="/editor-preview?page=home&mode=draft" sandbox="allow-scripts allow-same-origin" onLoad={postPreview} className="w-full h-full border-0" />
           </div>
         </main>
 
-        <aside className="border-l border-[#E2E6E8]/15 bg-[#0D1929] overflow-y-auto p-4" aria-label="Properties inspector">
+        <aside className="site-editor-panel border-l border-[#E2E6E8]/15 bg-[#0D1929] overflow-y-auto p-4" aria-label="Properties inspector">
           {selected ? <>
             <div className="border-b border-[#E2E6E8]/15 pb-3 mb-4"><div className="text-[10px] font-mono text-[#D8A065] uppercase">Selected section</div><h2 className="font-heading text-lg">{selected.type}</h2><code className="text-[9px] text-[#E2E6E8]/35">{selected.id}</code></div>
             <label className="flex items-center justify-between mb-4 text-xs"><span>Visible</span><input type="checkbox" checked={selected.visible} onChange={(event) => commit(setAtPath(page, ['sections', selectedIndex, 'visible'], event.target.checked))} /></label>

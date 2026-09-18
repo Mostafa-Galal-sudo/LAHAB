@@ -140,7 +140,7 @@ export const SerialVerifier: React.FC<SerialVerifierProps> = ({ language, schema
   return (
     <section
       id="authenticity"
-      className="bg-[#09111C] text-[#E2E6E8] px-4 sm:px-8 lg:px-16 py-28 border-t border-[#E2E6E8]/20 relative overflow-hidden"
+      className="bg-[#09111C] text-[#E2E6E8] px-4 sm:px-8 lg:px-16 py-20 sm:py-28 border-t border-[#E2E6E8]/20 relative overflow-hidden"
     >
       <div className="max-w-4xl mx-auto relative z-10 space-y-10">
         {/* Header */}

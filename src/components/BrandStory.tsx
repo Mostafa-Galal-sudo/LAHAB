@@ -18,7 +18,7 @@ export const BrandStory: React.FC<BrandStoryProps> = ({
   return (
     <section
       id="story"
-      className="bg-[#0D1929] text-[#E2E6E8] px-6 sm:px-10 lg:px-16 py-28 border-t border-[#E2E6E8]/20 relative overflow-hidden"
+      className="bg-[#0D1929] text-[#E2E6E8] px-5 sm:px-10 lg:px-16 py-20 sm:py-28 border-t border-[#E2E6E8]/20 relative overflow-hidden"
     >
       {/* Subtle organic light bloom in the background for depth */}
       <div className="absolute top-1/2 right-1/4 w-80 h-80 bg-[#D8A065]/5 rounded-full blur-3xl pointer-events-none" />
