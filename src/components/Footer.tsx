@@ -133,7 +133,15 @@ export const Footer: React.FC<FooterProps> = ({ t }) => {
         {/* Bottom Legal bar */}
         <div className="pt-8 border-t border-[#E2E6E8]/15 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-body text-[#E2E6E8]/60">
           <div>{t.copyright}</div>
-          <div className="flex items-center gap-6">
+          <nav aria-label="Legal and support" className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+            <a href="/privacy-policy" className="hover:text-[#D8A065] transition-colors">PRIVACY</a>
+            <a href="/terms" className="hover:text-[#D8A065] transition-colors">TERMS</a>
+            <a href="/cookie-policy" className="hover:text-[#D8A065] transition-colors">COOKIES</a>
+            <a href="/shipping-policy" className="hover:text-[#D8A065] transition-colors">SHIPPING</a>
+            <a href="/returns-refunds" className="hover:text-[#D8A065] transition-colors">RETURNS</a>
+            <a href="/contact" className="hover:text-[#D8A065] transition-colors">CONTACT</a>
+          </nav>
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
             <span>{t.edition}</span>
             <span>SHIPPED IN ACID-FREE PACKAGING</span>
           </div>

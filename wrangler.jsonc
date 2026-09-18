@@ -8,10 +8,10 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    // Only /api/* requests invoke the Worker; everything else (the storefront
+    // Only dynamic endpoints invoke the Worker; everything else (the storefront
     // and the /ctrl-xxxx admin page) is served directly as a static asset -
     // unlimited and free, per Cloudflare's Workers static assets billing.
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": ["/api/*", "/robots.txt", "/sitemap.xml"]
   },
 
   "d1_databases": [
