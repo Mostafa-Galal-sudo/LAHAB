@@ -1,4 +1,4 @@
-import { PAGE_SCHEMA_VERSION, type PageDocument, type SectionStyle } from './pageSchema';
+import { PAGE_SCHEMA_VERSION, type PageDocument, type PageSection, type SectionStyle } from './pageSchema';
 
 const navySection = (padding: SectionStyle['paddingTop'] = '2xl'): SectionStyle => ({
   background: { kind: 'theme', token: 'primary' },
@@ -67,20 +67,6 @@ export const INITIAL_HOMEPAGE_DOCUMENT: PageDocument = {
       },
     },
     {
-      id: 'home-calligraphic-banner',
-      type: 'calligraphicBanner',
-      visible: true,
-      style: { ...navySection('lg'), background: { kind: 'theme', token: 'surface' }, contentWidth: 'full', textAlign: 'center' },
-      content: {
-        showWordmark: true,
-        items: [
-          { id: 'banner-streetwear', text: { en: 'CONTEMPORARY STREETWEAR', ar: 'أزياء الشارع المعاصرة' }, emphasis: 'accent' },
-          { id: 'banner-tagline', text: { en: 'FIRE FORGED IN ARCHITECTURAL FORM', ar: 'طاقة اللهب في قوالب معمارية متقنة' }, emphasis: 'accent' },
-          { id: 'banner-origin', text: { en: 'LIMITED FIRST EDITION', ar: 'إصدار أول محدود' }, emphasis: 'muted' },
-        ],
-      },
-    },
-    {
       id: 'home-brand-story',
       type: 'brandStory',
       visible: true,
@@ -99,21 +85,6 @@ export const INITIAL_HOMEPAGE_DOCUMENT: PageDocument = {
           { id: 'story-silhouettes', title: { en: 'NOVEL SILHOUETTES', ar: 'قصات معمارية مبتكرة' }, description: { en: 'Boxy, drop-shoulder forms engineered with dense fabric drape.', ar: 'تصاميم عريضة بأكتاف ساقطة تمنح القماش ثقلًا وانسيابية فريدة.' } },
           { id: 'story-embroidery', title: { en: 'TACTILE EMBROIDERY', ar: 'تطريز ملموس وعالي الكثافة' }, description: { en: 'Matte gold high-density threadwork that endures relentless wear.', ar: 'خيوط ذهبية مطفية متينة تصمد أمام أصعب ظروف الارتداء اليومي.' } },
           { id: 'story-flame', title: { en: 'LIVING FLAME FORM', ar: 'طاقة خطية متدفقة' }, description: { en: 'Fluid calligraphic energy translated into modern silhouette lines.', ar: 'تتحول حركة الحروف التراثية إلى خطوط ظلية معاصرة مفعمة بالحيوية.' } },
-        ],
-      },
-    },
-    {
-      id: 'home-editorial',
-      type: 'editorialLookbook',
-      visible: true,
-      style: navySection(),
-      content: {
-        badge: { en: 'ARCHITECTURAL PROFILE // TEXTILE DISCIPLINE', ar: 'القالب المعماري // انضباط النسيج' },
-        title: { en: 'DENSE FABRIC DRAPE. PERMANENT EMBROIDERY.', ar: 'ثقل نسيجي استثنائي. تطريز ذهبي دائم.' },
-        subtitle: { en: 'Custom-milled heavyweight combed cotton and French terry. Deep nocturnal navy reactive dye with abrasion-resistant matte gold accents.', ar: 'قطن ممشط فاخر وفرينش تيري بوزن ثقيل خاص. صباغة كحلية ليلية مقاومة للتلاشي مع تفاصيل ذهبية مطفية عالية التحمل.' },
-        cards: [
-          { id: 'editorial-front', title: { en: 'FRONT ARCHITECTURE // HOODIE', ar: 'هودي الشارع المعماري // الواجهة' }, description: { en: 'Boxy drop-shoulder cut with dense drape, reinforced double hood collar, and high-density matte gold chest embroidery.', ar: 'قصة بأكتاف ساقطة واسعة تضمن ثبات وانسيابية القماش، وتطريز ذهبي مطفي عالي الدقة على الصدر.' }, image: { assetId: 'asset-editorial-streetwear' }, action: { id: 'editorial-size-action', label: { en: 'VIEW SIZE MATRIX', ar: 'جدول المقاسات الكامل' }, action: { type: 'openSizeGuide' }, variant: 'secondary' } },
-          { id: 'editorial-back', title: { en: 'FLAME CALLIGRAPHY // BACK', ar: 'طباعة حروف اللهب // الظهر' }, description: { en: 'Monumental arch back print honoring fire calligraphic dynamism, framed by ultra-durable French Terry ribs.', ar: 'طباعة أرشيفية عريضة بحروف لَهَب تعكس طاقة النار، محاطة بحواف متينة ونسيج صوف فرينش تيري فائق النعومة والمتانة.' }, image: { assetId: 'asset-editorial-streetwear' }, action: { id: 'editorial-products-action', label: { en: 'EXPLORE PIECES', ar: 'استعراض القطع' }, action: { type: 'scrollToSection', sectionId: 'home-products' }, variant: 'primary' } },
         ],
       },
     },
@@ -191,24 +162,6 @@ export const INITIAL_HOMEPAGE_DOCUMENT: PageDocument = {
       },
     },
     {
-      id: 'home-archival-vault',
-      type: 'archivalVault',
-      visible: true,
-      style: { ...navySection(), textAlign: 'center' },
-      content: {
-        badge: { en: 'ARCHIVAL VAULT // DROP 02', ar: 'خزينة الأرشيف القادم' },
-        title: { en: 'Drop 02: [REDACTED]', ar: 'الإصدار الثاني // [مخفي]' },
-        description: { en: 'Classified early look at our upcoming dawn silhouette capsule. Unlock the blueprints with your VIP pass or register for early allocation privileges.', ar: 'معاينة سرية وحصرية للقطع المعمارية القادمة من علامة لَهَب. أدخل رمز VIP الخاص بك أو سجل بياناتك لفتح المخططات.' },
-        pieces: [
-          { id: 'vault-cargo-pant', name: { en: 'Architectural Tapered Cargo Pant', ar: 'بنطال كارجو معمارى مدبب فائق المتانة' }, details: { en: 'Articulated knee darts, 6 concealed flap pockets, matte brass cinch buckles.', ar: 'ثنيات ركبة مفصلية مع 6 جيوب مخفية وإبزيم نحاسي مطفي.' }, status: { en: 'PROTOTYPE APPROVED // 150 UNITS', ar: 'تم اعتماد العينة // ١٥٠ قطعة فقط' }, visible: true },
-          { id: 'vault-heavy-short', name: { en: 'Raw-Edge French Terry Heavy Short', ar: 'شورت صوف فرنسي ثقيل بحواف خام' }, details: { en: 'Hand-distressed raw leg hem, deep side welts, extended flat cotton drawstrings.', ar: 'حواف أرجل خام منسولة يدوياً مع أربطة قطنية عريضة ممتدة.' }, status: { en: 'IN WEAVING // 120 UNITS', ar: 'قيد النسيج بالمحلة // ١٢٠ قطعة فقط' }, visible: true },
-          { id: 'vault-ribbed-beanie', name: { en: 'Chunky Ribbed Beanie w/ Brass Ingot', ar: 'قبعة صوفية مضلعة مع سبيكة نحاسية' }, details: { en: 'Custom engraved mini-ingot riveted on cuff, heavyweight zero-itch yarn.', ar: 'سبيكة معدنية مصغرة منقوشة على الحافة، خيوط ناعمة خالية من الحكة.' }, status: { en: 'ATELIER FINISHING // 80 UNITS', ar: 'اللمسات النهائية // ٨٠ قطعة فقط' }, visible: true },
-        ],
-        allowPasscode: true,
-        allowWaitlist: true,
-      },
-    },
-    {
       id: 'home-faq',
       type: 'faq',
       visible: true,
@@ -274,3 +227,66 @@ export const INITIAL_HOMEPAGE_DOCUMENT: PageDocument = {
     },
   ],
 };
+
+/**
+ * Editor templates include every supported section type, including sections
+ * intentionally omitted from the live homepage composition.
+ */
+export const PAGE_SECTION_TEMPLATES: readonly PageSection[] = [
+  ...INITIAL_HOMEPAGE_DOCUMENT.sections,
+  {
+    id: 'template-calligraphic-banner',
+    type: 'calligraphicBanner',
+    visible: true,
+    style: { ...navySection('lg'), background: { kind: 'theme', token: 'surface' }, contentWidth: 'full', textAlign: 'center' },
+    content: {
+      showWordmark: true,
+      items: [
+        { id: 'template-banner-streetwear', text: { en: 'CONTEMPORARY STREETWEAR', ar: 'أزياء الشارع المعاصرة' }, emphasis: 'accent' },
+        { id: 'template-banner-tagline', text: { en: 'FIRE FORGED IN ARCHITECTURAL FORM', ar: 'طاقة اللهب في قوالب معمارية متقنة' }, emphasis: 'accent' },
+        { id: 'template-banner-origin', text: { en: 'LIMITED FIRST EDITION', ar: 'إصدار أول محدود' }, emphasis: 'muted' },
+      ],
+    },
+  },
+  {
+    id: 'template-editorial-lookbook',
+    type: 'editorialLookbook',
+    visible: true,
+    style: navySection(),
+    content: {
+      badge: { en: 'EDITORIAL LOOKBOOK', ar: 'دليل الإطلالات التحريري' },
+      title: { en: 'ARCHITECTURAL STREETWEAR STUDY', ar: 'دراسة معمارية لأزياء الشارع' },
+      subtitle: { en: 'Present the garment silhouette, fabric, and construction details.', ar: 'اعرض تفاصيل القصة والنسيج والبناء.' },
+      cards: [
+        {
+          id: 'template-editorial-card',
+          title: { en: 'LOOK 01', ar: 'الإطلالة 01' },
+          description: { en: 'Add the editorial story for this look.', ar: 'أضف القصة التحريرية لهذه الإطلالة.' },
+          image: { assetId: 'asset-editorial-streetwear' },
+        },
+      ],
+    },
+  },
+  {
+    id: 'template-archival-vault',
+    type: 'archivalVault',
+    visible: true,
+    style: { ...navySection(), textAlign: 'center' },
+    content: {
+      badge: { en: 'ARCHIVAL VAULT', ar: 'خزينة الأرشيف' },
+      title: { en: 'UPCOMING ARCHIVE', ar: 'الأرشيف القادم' },
+      description: { en: 'Share a private preview of an upcoming release.', ar: 'شارك معاينة خاصة لإصدار قادم.' },
+      pieces: [
+        {
+          id: 'template-vault-piece',
+          name: { en: 'ARCHIVE PIECE', ar: 'قطعة أرشيفية' },
+          details: { en: 'Add construction and material details.', ar: 'أضف تفاصيل الخامة والتصنيع.' },
+          status: { en: 'IN DEVELOPMENT', ar: 'قيد التطوير' },
+          visible: true,
+        },
+      ],
+      allowPasscode: true,
+      allowWaitlist: true,
+    },
+  },
+];

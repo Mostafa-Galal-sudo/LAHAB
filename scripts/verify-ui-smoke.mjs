@@ -71,7 +71,7 @@ try {
   const tabsPresent = await evaluate(`['pieces','analytics & demand','reviews','orders & inbox','site editor'].every(label => document.body.innerText.toLowerCase().includes(label))`);
   assert(tabsPresent, 'An existing admin workspace is missing.');
   await evaluate(`[...document.querySelectorAll('button')].find(b => b.textContent.toLowerCase().includes('site editor'))?.click()`);
-  await waitFor(`document.querySelector('iframe[title="Draft storefront preview"]')?.contentDocument?.querySelectorAll('[data-editor-section-id]').length === 13`, 'draft PageRenderer preview');
+  await waitFor(`document.querySelector('iframe[title="Draft storefront preview"]')?.contentDocument?.querySelectorAll('[data-editor-section-id]').length === 10`, 'draft PageRenderer preview');
   const editor = await evaluate(`(() => {
     const frame = document.querySelector('iframe[title="Draft storefront preview"]');
     const doc = frame.contentDocument;
@@ -88,7 +88,7 @@ try {
       toolbar: toolbarButtons.every(([, present]) => present) && toolbarText.every(([, present]) => present),
     };
   })()`);
-  assert(editor.safeMarker && editor.sections === 13 && editor.submitBlocked && editor.toolbar, `Site Editor preview safety or toolbar smoke check failed: ${JSON.stringify(editor)}`);
+  assert(editor.safeMarker && editor.sections === 10 && editor.submitBlocked && editor.toolbar, `Site Editor preview safety or toolbar smoke check failed: ${JSON.stringify(editor)}`);
   await evaluate(`[...document.querySelectorAll('button')].find(b => b.textContent.trim().toLowerCase() === 'assets')?.click()`);
   await waitFor(`document.querySelector('[role="dialog"][aria-label="Asset library"]') !== null`, 'asset library');
   await waitFor(`document.querySelectorAll('[role="dialog"][aria-label="Asset library"] article').length >= 3`, 'asset library records');
@@ -105,17 +105,17 @@ try {
   await sleep(150);
   assert(await evaluate(`document.querySelector('aside[aria-label="Properties inspector"]')?.innerText.toUpperCase().includes('HERO')`), 'Preview-to-inspector selection did not synchronize.');
   await evaluate(`document.querySelector('button[aria-label="Duplicate section"]')?.click()`);
-  await waitFor(`document.querySelector('iframe[title="Draft storefront preview"]')?.contentDocument?.querySelectorAll('[data-editor-section-id]').length === 14`, 'unsaved local duplicate');
+  await waitFor(`document.querySelector('iframe[title="Draft storefront preview"]')?.contentDocument?.querySelectorAll('[data-editor-section-id]').length === 11`, 'unsaved local duplicate');
   const competingSave = await evaluate(`fetch('/api/${slug}/pages/home/draft', { credentials: 'include' }).then(r => r.json()).then(draft => fetch('/api/${slug}/pages/home/draft', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ document: draft.page, expectedDraftRevisionId: draft.revisionId }) })).then(async r => ({ status: r.status, body: await r.json() }))`);
   assert(competingSave.status === 200, `Competing editor setup failed with ${competingSave.status}.`);
   await evaluate(`[...document.querySelectorAll('button')].find(b => b.textContent.toLowerCase().includes('save draft'))?.click()`);
   await waitFor(`document.querySelector('[data-editor-status="conflict"]') !== null`, 'editor conflict state');
-  assert(await evaluate(`document.querySelector('iframe[title="Draft storefront preview"]')?.contentDocument?.querySelectorAll('[data-editor-section-id]').length === 14`), 'Conflict must retain unsaved local changes.');
+  assert(await evaluate(`document.querySelector('iframe[title="Draft storefront preview"]')?.contentDocument?.querySelectorAll('[data-editor-section-id]').length === 11`), 'Conflict must retain unsaved local changes.');
   await evaluate(`[...document.querySelectorAll('button')].find(b => b.textContent.toLowerCase().includes('reload latest draft'))?.click()`);
-  await waitFor(`document.querySelector('[data-editor-status="saved"]') !== null && document.querySelector('iframe[title="Draft storefront preview"]')?.contentDocument?.querySelectorAll('[data-editor-section-id]').length === 13`, 'conflict reload recovery');
+  await waitFor(`document.querySelector('[data-editor-status="saved"]') !== null && document.querySelector('iframe[title="Draft storefront preview"]')?.contentDocument?.querySelectorAll('[data-editor-section-id]').length === 10`, 'conflict reload recovery');
 
   await navigate(baseUrl);
-  await waitFor(`document.querySelectorAll('[data-page-section-id]').length === 13 || document.querySelectorAll('[data-editor-section-id]').length === 13`, 'published homepage sections');
+  await waitFor(`document.querySelectorAll('[data-page-section-id]').length === 10 || document.querySelectorAll('[data-editor-section-id]').length === 10`, 'published homepage sections');
   const storefront = await evaluate(`(() => ({
     renderer: document.querySelector('main')?.dataset.pageRenderer || document.querySelector('[data-page-renderer]')?.getAttribute('data-page-renderer') || null,
     sections: document.querySelectorAll('[data-page-section-id], [data-editor-section-id]').length,
@@ -123,7 +123,7 @@ try {
     hasViewer: !!document.querySelector('canvas'),
     failedImages: [...document.images].filter(img => img.complete && img.naturalWidth === 0).map(img => ({ src: img.currentSrc || img.src, alt: img.alt })),
   }))()`);
-  assert(storefront.sections === 13 && storefront.hasProducts && storefront.hasViewer && storefront.failedImages.length === 0, `Storefront smoke check failed: ${JSON.stringify(storefront)}`);
+  assert(storefront.sections === 10 && storefront.hasProducts && storefront.hasViewer && storefront.failedImages.length === 0, `Storefront smoke check failed: ${JSON.stringify(storefront)}`);
   await evaluate(`document.querySelector('#lang-translation-button')?.click()`);
   await waitFor(`document.documentElement.dir === 'rtl' && document.documentElement.lang === 'ar'`, 'public Arabic RTL mode');
   await evaluate(`document.querySelector('#lang-translation-button')?.click()`);

@@ -1,14 +1,11 @@
 import React from 'react';
 import HeroSection from '../components/HeroSection';
-import CalligraphicBanner from '../components/CalligraphicBanner';
 import BrandStory from '../components/BrandStory';
-import EditorialLookbook from '../components/EditorialLookbook';
 import ProductShowcase from '../components/ProductShowcase';
 import Garment360Viewer from '../components/Garment360Viewer';
 import ProductReviewsSection from '../components/ProductReviewsSection';
 import StreetStyleLookbook from '../components/StreetStyleLookbook';
 import SerialVerifier from '../components/SerialVerifier';
-import ArchivalVaultTeaser from '../components/ArchivalVaultTeaser';
 import FaqSection from '../components/FaqSection';
 import ContactSection from '../components/ContactSection';
 import Footer from '../components/Footer';
@@ -25,9 +22,7 @@ const LegacyStorefrontPage: React.FC<LegacyStorefrontPageProps> = ({ context }) 
   return (
     <div data-page-renderer="legacy" style={{ display: 'contents' }}>
       <HeroSection onExploreClick={context.onScrollToProducts} t={t.hero} isArabic={context.isArabic} />
-      <CalligraphicBanner content={{ ...t.banner, showWordmark: true }} />
       <BrandStory t={t.story} isArabic={context.isArabic} />
-      <EditorialLookbook t={t.editorial} language={context.language} onOpenSizingModal={context.onOpenSizeGuide} />
       <ProductShowcase
         products={context.products}
         reviews={context.reviews}
@@ -50,7 +45,6 @@ const LegacyStorefrontPage: React.FC<LegacyStorefrontPageProps> = ({ context }) 
       />
       <StreetStyleLookbook language={context.language} onShopLook={context.onShopLook} />
       <SerialVerifier language={context.language} />
-      <ArchivalVaultTeaser language={context.language} />
       <FaqSection t={t.faq} language={context.language} />
       <ContactSection language={context.language} />
       <Footer t={t.footer} />

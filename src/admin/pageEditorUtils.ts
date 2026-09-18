@@ -1,4 +1,4 @@
-import { INITIAL_HOMEPAGE_DOCUMENT } from '../../shared/homepageSeed';
+import { PAGE_SECTION_TEMPLATES } from '../../shared/homepageSeed';
 import type { PageDocument, PageSection, PageSectionType } from '../../shared/pageSchema';
 
 export type EditorPath = Array<string | number>;
@@ -21,7 +21,7 @@ export function regenerateIds<T>(value: T): T {
 }
 
 export function createSection(type: PageSectionType): PageSection {
-  const template = INITIAL_HOMEPAGE_DOCUMENT.sections.find((section) => section.type === type);
+  const template = PAGE_SECTION_TEMPLATES.find((section) => section.type === type);
   if (!template) throw new Error(`No section template registered for ${type}`);
   return regenerateIds(template);
 }
