@@ -26,6 +26,37 @@ interface ProductRow {
   tagsEn: string;
   tagsAr: string;
   editorialImage: string | null;
+  modelAssetId: string | null;
+  modelFormat: 'obj' | 'glb' | null;
+  modelConfigJson: string | null;
+}
+
+type ModelFormat = 'obj' | 'glb';
+type Vector3 = [number, number, number];
+interface ProductModel3D {
+  assetId: string;
+  format: ModelFormat;
+  scale: Vector3;
+  position: Vector3;
+  rotation: Vector3;
+  cameraPosition: Vector3;
+  autoRotate: boolean;
+  autoRotateSpeed: number;
+  backgroundColor: string;
+  lightingPreset: 'studio' | 'softbox' | 'dramatic' | 'neutral';
+  materialColor?: string;
+}
+
+function parseModel3d(row: ProductRow): ProductModel3D | undefined {
+  if (!row.modelAssetId || !row.modelConfigJson) return undefined;
+  try {
+    const parsed = JSON.parse(row.modelConfigJson);
+    return validateModel3d(parsed) && parsed.assetId === row.modelAssetId && parsed.format === row.modelFormat
+      ? parsed
+      : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function rowToProduct(row: ProductRow) {
@@ -44,6 +75,7 @@ function rowToProduct(row: ProductRow) {
     outOfStockSizes: JSON.parse(row.outOfStockSizes),
     tags: { en: JSON.parse(row.tagsEn), ar: JSON.parse(row.tagsAr) },
     editorialImage: row.editorialImage || undefined,
+    model3d: parseModel3d(row),
   };
 }
 
@@ -59,6 +91,32 @@ function slugify(input: string): string {
 }
 
 const VALID_SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+const ASSET_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
+const LIGHTING_PRESETS = ['studio', 'softbox', 'dramatic', 'neutral'];
+
+function validVector(value: unknown, maxAbs = 100): value is Vector3 {
+  return Array.isArray(value) && value.length === 3 && value.every((part) =>
+    typeof part === 'number' && Number.isFinite(part) && Math.abs(part) <= maxAbs
+  );
+}
+
+function validateModel3d(value: any): value is ProductModel3D {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const allowed = new Set(['assetId', 'format', 'scale', 'position', 'rotation', 'cameraPosition', 'autoRotate', 'autoRotateSpeed', 'backgroundColor', 'lightingPreset', 'materialColor']);
+  if (Object.keys(value).some((key) => !allowed.has(key))) return false;
+  return typeof value.assetId === 'string' && ASSET_ID.test(value.assetId)
+    && (value.format === 'obj' || value.format === 'glb')
+    && validVector(value.scale, 20) && value.scale.every((part: number) => part > 0)
+    && validVector(value.position, 20)
+    && validVector(value.rotation, 100)
+    && validVector(value.cameraPosition, 100)
+    && typeof value.autoRotate === 'boolean'
+    && typeof value.autoRotateSpeed === 'number' && Number.isFinite(value.autoRotateSpeed) && value.autoRotateSpeed >= 0 && value.autoRotateSpeed <= 20
+    && typeof value.backgroundColor === 'string' && HEX_COLOR.test(value.backgroundColor)
+    && LIGHTING_PRESETS.includes(value.lightingPreset)
+    && (value.materialColor === undefined || (typeof value.materialColor === 'string' && HEX_COLOR.test(value.materialColor)));
+}
 
 function validateProductPayload(body: any): string | null {
   if (!body || typeof body !== 'object') return 'Invalid payload.';
@@ -75,6 +133,18 @@ function validateProductPayload(body: any): string | null {
       return 'Product images must use a valid asset or HTTPS URL.';
     }
   }
+  if (body.model3d !== undefined && body.model3d !== null && !validateModel3d(body.model3d)) {
+    return '3D model configuration is malformed or contains unsupported values.';
+  }
+  return null;
+}
+
+async function validateModelAsset(c: any, model: ProductModel3D | null | undefined): Promise<string | null> {
+  if (!model || model.assetId === 'asset-model-hoodie-obj') return null;
+  const asset = await c.env.DB.prepare('SELECT kind, file_name FROM assets WHERE id = ?').bind(model.assetId).first() as { kind: string; file_name: string } | null;
+  if (!asset || asset.kind !== 'model') return 'The selected 3D model asset does not exist.';
+  const extension = asset.file_name.split('.').pop()?.toLowerCase();
+  if (extension !== model.format) return `The selected asset is not a .${model.format} model.`;
   return null;
 }
 
@@ -96,6 +166,8 @@ productsRouter.post('/', requireAdmin, async (c) => {
   const body = await c.req.json();
   const err = validateProductPayload(body);
   if (err) return c.json({ success: false, error: err }, 400);
+  const assetError = await validateModelAsset(c, body.model3d);
+  if (assetError) return c.json({ success: false, error: assetError }, 422);
 
   const baseSlug = slugify(body.name.en);
   let id = baseSlug;
@@ -113,8 +185,9 @@ productsRouter.post('/', requireAdmin, async (c) => {
     `INSERT INTO products (
       id, code, nameEn, nameAr, priceEGP, weight, fitEn, fitAr, materialEn, materialAr,
       descriptionEn, descriptionAr, frontDetailEn, frontDetailAr, backDetailEn, backDetailAr,
-      sizes, outOfStockSizes, tagsEn, tagsAr, editorialImage, sortOrder, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      sizes, outOfStockSizes, tagsEn, tagsAr, editorialImage, modelAssetId, modelFormat, modelConfigJson,
+      sortOrder, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       id,
@@ -138,6 +211,9 @@ productsRouter.post('/', requireAdmin, async (c) => {
       JSON.stringify(Array.isArray(body.tags?.en) ? body.tags.en : []),
       JSON.stringify(Array.isArray(body.tags?.ar) ? body.tags.ar : []),
       body.editorialImage || null,
+      body.model3d?.assetId || null,
+      body.model3d?.format || null,
+      body.model3d ? JSON.stringify(body.model3d) : null,
       sortOrder,
       now,
       now
@@ -157,6 +233,8 @@ productsRouter.put('/:id', requireAdmin, async (c) => {
   const body = await c.req.json();
   const err = validateProductPayload(body);
   if (err) return c.json({ success: false, error: err }, 400);
+  const assetError = await validateModelAsset(c, body.model3d);
+  if (assetError) return c.json({ success: false, error: assetError }, 422);
 
   const now = new Date().toISOString();
 
@@ -168,7 +246,7 @@ productsRouter.put('/:id', requireAdmin, async (c) => {
       frontDetailEn = ?, frontDetailAr = ?,
       backDetailEn = ?, backDetailAr = ?,
       sizes = ?, outOfStockSizes = ?, tagsEn = ?, tagsAr = ?,
-      editorialImage = ?, updatedAt = ?
+      editorialImage = ?, modelAssetId = ?, modelFormat = ?, modelConfigJson = ?, updatedAt = ?
     WHERE id = ?`
   )
     .bind(
@@ -192,6 +270,9 @@ productsRouter.put('/:id', requireAdmin, async (c) => {
       JSON.stringify(Array.isArray(body.tags?.en) ? body.tags.en : []),
       JSON.stringify(Array.isArray(body.tags?.ar) ? body.tags.ar : []),
       body.editorialImage || null,
+      body.model3d?.assetId || null,
+      body.model3d?.format || null,
+      body.model3d ? JSON.stringify(body.model3d) : null,
       now,
       id
     )

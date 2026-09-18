@@ -30,12 +30,19 @@ const LegacyStorefrontPage: React.FC<LegacyStorefrontPageProps> = ({ context }) 
         onOpenMonogram={context.onOpenMonogram}
         onOpenFitVisualizer={context.onOpenFitVisualizer}
         onOpenReviews={context.onOpenReviews}
+        onViewIn3D={(productId) => context.onSelectViewerProduct(productId, true)}
         savedProductIds={context.savedProductIds}
         onToggleSave={context.onToggleWishlist}
         t={t.showcase}
         language={context.language}
       />
-      <Garment360Viewer products={context.products} language={context.language} theme={context.theme} />
+      <Garment360Viewer
+        products={context.products}
+        language={context.language}
+        theme={context.theme}
+        selectedProductId={context.selectedViewerProductId}
+        onSelectProduct={(productId) => context.onSelectViewerProduct(productId, false)}
+      />
       <ProductReviewsSection
         products={context.products}
         reviews={context.reviews}

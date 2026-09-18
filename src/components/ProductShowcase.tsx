@@ -11,6 +11,7 @@ interface ProductShowcaseProps {
   onOpenMonogram?: (product: ProductItem, size: GarmentSize) => void;
   onOpenFitVisualizer?: () => void;
   onOpenReviews?: (productId: ProductId) => void;
+  onViewIn3D?: (productId: ProductId) => void;
   savedProductIds?: string[];
   onToggleSave?: (productId: ProductId, size: GarmentSize) => void;
   t: TranslationSchema['showcase'];
@@ -48,6 +49,7 @@ export const ProductShowcase: React.FC<ProductShowcaseProps> = ({
   onOpenMonogram,
   onOpenFitVisualizer,
   onOpenReviews,
+  onViewIn3D,
   savedProductIds = [],
   onToggleSave,
   t,
@@ -110,6 +112,7 @@ export const ProductShowcase: React.FC<ProductShowcaseProps> = ({
                   onOpenMonogram={onOpenMonogram}
                   onOpenFitVisualizer={onOpenFitVisualizer}
                   onOpenReviews={onOpenReviews}
+                  onViewIn3D={onViewIn3D}
                   isSaved={savedProductIds.includes(product.id)}
                   onToggleSave={onToggleSave}
                   reviewsCount={productReviews.length}

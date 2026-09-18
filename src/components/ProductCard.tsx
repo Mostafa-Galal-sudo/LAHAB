@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ZoomIn, Bell, Share2, Copy, Check, Heart, Scissors, Ruler, Star, MessageSquare } from 'lucide-react';
+import { ZoomIn, Bell, Share2, Copy, Check, Heart, Scissors, Ruler, Star, MessageSquare, Box } from 'lucide-react';
 import { ProductItem, GarmentSize, GarmentView, ProductId } from '../types';
 import StockAlertModal from './StockAlertModal';
 import { TranslationSchema, Language } from '../translations';
@@ -10,6 +10,7 @@ interface ProductCardProps {
   onOpenMonogram?: (product: ProductItem, size: GarmentSize) => void;
   onOpenFitVisualizer?: () => void;
   onOpenReviews?: (productId: ProductId) => void;
+  onViewIn3D?: (productId: ProductId) => void;
   onEditImage?: (product: ProductItem) => void;
   isSaved?: boolean;
   onToggleSave?: (productId: ProductId, size: GarmentSize) => void;
@@ -25,6 +26,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onOpenMonogram,
   onOpenFitVisualizer,
   onOpenReviews,
+  onViewIn3D,
   onEditImage,
   isSaved = false,
   onToggleSave,
@@ -493,6 +495,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 ? 'تخصيص تطريز بالخيط الذهبي (+٣٥٠ ج.م)'
                 : 'BESPOKE GOLD MONOGRAM EMBROIDERY (+350 EGP)'}
             </span>
+          </button>
+        )}
+
+        {onViewIn3D && (
+          <button
+            type="button"
+            onClick={() => onViewIn3D(product.id)}
+            className="w-full py-2.5 px-4 text-xs font-heading font-bold flex items-center justify-center gap-2 cursor-pointer border border-[#D8A065]/45 bg-[#0A1422] text-[#D8A065] hover:border-[#D8A065] hover:bg-[#132238] transition-all tracking-wider uppercase"
+          >
+            <Box className="w-3.5 h-3.5" />
+            <span>{isArabic ? 'عرض هذه القطعة بتقنية 3D' : 'VIEW THIS PIECE IN 3D'}</span>
           </button>
         )}
 

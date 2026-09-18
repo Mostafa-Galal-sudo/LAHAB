@@ -52,6 +52,19 @@ const unauthCreate = await request('/api/products', { method: 'POST', headers: {
 assert(unauthCreate.response.status === 401, 'Product creation must require admin authentication.');
 const base64Product = await request('/api/products', { method: 'POST', headers: auth, body: JSON.stringify({ ...product, editorialImage: 'data:image/png;base64,AAAA' }) });
 assert(base64Product.response.status === 400, 'Product creation must reject base64 media persistence.');
+const bundledModel = {
+  assetId: 'asset-model-hoodie-obj', format: 'obj', scale: [1, 1, 1], position: [0, 0, 0],
+  rotation: [0, 0, 0], cameraPosition: [0, 0.4, 4.2], autoRotate: true,
+  autoRotateSpeed: 1, backgroundColor: '#0A1422', lightingPreset: 'studio',
+};
+const malformedModel = await request('/api/products', {
+  method: 'POST', headers: auth, body: JSON.stringify({ ...product, model3d: { ...bundledModel, scale: [1, 1] } }),
+});
+assert(malformedModel.response.status === 400, 'Product creation must reject malformed 3D presentation data.');
+const missingModelAsset = await request('/api/products', {
+  method: 'POST', headers: auth, body: JSON.stringify({ ...product, model3d: { ...bundledModel, assetId: 'missing-model-asset' } }),
+});
+assert(missingModelAsset.response.status === 422, 'Product creation must reject unknown model asset references.');
 
 let productId;
 try {
@@ -59,11 +72,11 @@ try {
   assert(created.response.status === 201, `Admin product creation failed: ${JSON.stringify(created.payload)}`);
   productId = created.payload.product.id;
   const updated = await request(`/api/products/${encodeURIComponent(productId)}`, {
-    method: 'PUT', headers: auth, body: JSON.stringify({ ...product, priceEGP: 1337 }),
+    method: 'PUT', headers: auth, body: JSON.stringify({ ...product, priceEGP: 1337, model3d: bundledModel }),
   });
-  assert(updated.response.ok && updated.payload.product.priceEGP === 1337, 'Admin product update must persist to D1.');
+  assert(updated.response.ok && updated.payload.product.priceEGP === 1337 && updated.payload.product.model3d?.assetId === bundledModel.assetId, 'Admin product update must persist pricing and model configuration to D1.');
   const loaded = await request(`/api/products/${encodeURIComponent(productId)}`);
-  assert(loaded.response.ok && loaded.payload.product.priceEGP === 1337, 'Updated product must be publicly readable from D1.');
+  assert(loaded.response.ok && loaded.payload.product.priceEGP === 1337 && loaded.payload.product.model3d?.format === 'obj', 'Updated product and model must be publicly readable from D1.');
 } finally {
   if (productId) {
     const deleted = await request(`/api/products/${encodeURIComponent(productId)}`, { method: 'DELETE', headers: auth });

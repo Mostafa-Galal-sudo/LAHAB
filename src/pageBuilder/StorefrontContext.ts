@@ -18,12 +18,14 @@ export interface StorefrontContext {
   currency: string;
   translations: TranslationSchema;
   selectedReviewsProductId?: ProductId;
+  selectedViewerProductId?: ProductId;
   savedProductIds: string[];
   onAddToCart: (product: ProductItem, size: GarmentSize, monogram?: MonogramCustomization) => void;
   onToggleWishlist: (productId: ProductId, size: GarmentSize) => void;
   onOpenMonogram: (product: ProductItem, size: GarmentSize) => void;
   onOpenFitVisualizer: () => void;
   onOpenReviews: (productId: ProductId) => void;
+  onSelectViewerProduct: (productId: ProductId, scroll?: boolean) => void;
   onOpenSizeGuide: () => void;
   onReviewsChanged: () => void;
   onScrollToProducts: () => void;

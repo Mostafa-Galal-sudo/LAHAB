@@ -91,6 +91,7 @@ export default function App() {
   const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [publishedPage, setPublishedPage] = useState<PageDocument | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
+  const [viewerProductId, setViewerProductId] = useState<ProductId>();
 
   const refreshReviews = useCallback(() => {
     getReviews()
@@ -310,6 +311,15 @@ export default function App() {
     }
   };
 
+  const handleSelectViewerProduct = (productId: ProductId, scroll = false) => {
+    setViewerProductId(productId);
+    if (scroll) {
+      requestAnimationFrame(() => {
+        document.getElementById('drape-360')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  };
+
   const storefrontContext: StorefrontContext = {
     products,
     reviews,
@@ -319,12 +329,14 @@ export default function App() {
     currency: selectedCurrency,
     translations: t,
     selectedReviewsProductId: reviewsProductId,
+    selectedViewerProductId: viewerProductId,
     savedProductIds: savedItems.map((item) => item.productId),
     onAddToCart: handleAddToCart,
     onToggleWishlist: handleToggleSave,
     onOpenMonogram: handleOpenMonogramModal,
     onOpenFitVisualizer: () => setIsFitVisualizerOpen(true),
     onOpenReviews: handleOpenReviews,
+    onSelectViewerProduct: handleSelectViewerProduct,
     onOpenSizeGuide: () => setIsSizingOpen(true),
     onReviewsChanged: refreshReviews,
     onScrollToProducts: handleScrollToProducts,

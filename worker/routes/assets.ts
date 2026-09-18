@@ -168,7 +168,7 @@ adminAssetsRouter.delete('/:id', async (c) => {
   if (!row) return c.json({ success: false, error: 'Asset not found.' }, 404);
   if (row.storageKey.startsWith('bundled/')) return c.json({ success: false, error: 'Bundled compatibility assets cannot be deleted.' }, 409);
   const pageReference = await c.env.DB.prepare('SELECT 1 FROM page_revisions WHERE document_json LIKE ? LIMIT 1').bind(`%${row.id}%`).first();
-  const productReference = await c.env.DB.prepare('SELECT 1 FROM products WHERE editorialImage LIKE ? LIMIT 1').bind(`%${row.id}%`).first();
+  const productReference = await c.env.DB.prepare('SELECT 1 FROM products WHERE editorialImage LIKE ? OR modelAssetId = ? LIMIT 1').bind(`%${row.id}%`, row.id).first();
   if (pageReference || productReference) {
     return c.json({ success: false, error: 'Asset is referenced by page or product history and cannot be deleted.', code: 'ASSET_IN_USE' }, 409);
   }

@@ -15,20 +15,25 @@ import {
 import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { ProductItem, Theme } from '../types';
+import { ProductId, ProductItem, Theme } from '../types';
 import { Language } from '../translations';
 import type { ModelPresentation } from '../../shared/pageSchema';
+import { resolveAsset } from '../pageBuilder/assetResolver';
 
 interface Garment360ViewerProps {
   products: ProductItem[];
   language: Language;
   theme?: Theme;
   modelUrl?: string;
+  selectedProductId?: ProductId;
+  onSelectProduct?: (productId: ProductId) => void;
   schemaContent?: {
     badge: string;
     title: string;
     description: string;
     model: ModelPresentation;
+    allowManualOrbit?: boolean;
+    showFallbackMannequin?: boolean;
   };
 }
 
@@ -45,14 +50,26 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
   language,
   theme = 'navy',
   modelUrl = '/assets/models/lahab_drop01_hoodie.obj',
+  selectedProductId,
+  onSelectProduct,
   schemaContent,
 }) => {
   const isArabic = language === 'ar';
-  const modelPresentation = schemaContent?.model;
-  const selectedProduct = products[0] || {
+  const [localSelectedProductId, setLocalSelectedProductId] = useState<ProductId>();
+  const requestedProductId = selectedProductId ?? localSelectedProductId;
+  const selectedProduct = products.find((product) => product.id === requestedProductId)
+    ?? products.find((product) => product.model3d)
+    ?? products[0] ?? {
     id: 'hoodie-01',
+    code: 'DROP 01',
+    name: { en: 'LAHAB Hoodie', ar: 'هودي لهب' },
     weight: '520 GSM FLEECE',
   };
+  const productModel = 'model3d' in selectedProduct ? selectedProduct.model3d : undefined;
+  const modelPresentation = productModel ?? schemaContent?.model;
+  const effectiveModelUrl = productModel
+    ? resolveAsset({ assetId: productModel.assetId }, modelUrl)
+    : modelUrl;
 
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
@@ -183,13 +200,13 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
     targetGroup: THREE.Group,
     fileName: string,
     fileSizeKB: string,
-    isPersistent: boolean = false
+    addCompatibilityEmblem: boolean = false
   ) => {
     const loader = new OBJLoader();
     const obj = loader.parse(objText);
 
     // Add gold embroidery emblem highlight onto the chest of the persistent model
-    if (isPersistent) {
+    if (addCompatibilityEmblem) {
       const emblemGeo = new THREE.PlaneGeometry(0.32, 0.12);
       const emblemMat = new THREE.MeshStandardMaterial({
         color: 0xd8a065,
@@ -201,7 +218,7 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
       obj.add(emblemMesh);
     }
 
-    mountObject(obj, targetGroup, { fileName, fileSize: `${fileSizeKB} KB`, isPersistentAsset: isPersistent }, false);
+    mountObject(obj, targetGroup, { fileName, fileSize: `${fileSizeKB} KB`, isPersistentAsset: true }, false);
   }, [mountObject]);
 
   // Function to load the persistent repository 3D model asset
@@ -209,12 +226,12 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
     setIsModelLoading(true);
     setLoadError(null);
     try {
-      const response = await fetch(modelUrl);
+      const response = await fetch(effectiveModelUrl);
       if (!response.ok) {
         throw new Error(`Failed to load persistent model (${response.status})`);
       }
       if (persistentModelGroupRef.current) {
-        const fileName = modelUrl.split('/').pop() || 'lahab_drop01_hoodie.obj';
+        const fileName = effectiveModelUrl.split('/').pop() || `${selectedProduct.id}.${modelPresentation?.format ?? 'obj'}`;
         const sizeKB = ((Number(response.headers.get('content-length')) || 0) / 1024).toFixed(1);
         if (modelPresentation?.format === 'glb') {
           const buffer = await response.arrayBuffer();
@@ -223,7 +240,13 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
           });
           mountObject(gltf.scene, persistentModelGroupRef.current, { fileName, fileSize: `${sizeKB} KB`, isPersistentAsset: true }, true);
         } else {
-          parseAndMountObj(await response.text(), persistentModelGroupRef.current, fileName, sizeKB || '34.8', true);
+          parseAndMountObj(
+            await response.text(),
+            persistentModelGroupRef.current,
+            fileName,
+            sizeKB || '34.8',
+            modelPresentation?.assetId === 'asset-model-hoodie-obj',
+          );
         }
         persistentModelGroupRef.current.visible = true;
       }
@@ -236,7 +259,7 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
     } catch (err: any) {
       console.warn('Persistent 3D asset fetch fallback to studio mannequin:', err);
       // Fallback gracefully to architectural mannequin
-      if (defaultGeometryGroupRef.current && (schemaContent?.model.assetId !== 'asset-model-hoodie-obj')) {
+      if (defaultGeometryGroupRef.current && modelPresentation?.assetId !== 'asset-model-hoodie-obj') {
         try {
           const fallback = await fetch('/assets/models/lahab_drop01_hoodie.obj');
           if (fallback.ok && persistentModelGroupRef.current) {
@@ -256,7 +279,7 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
       setActiveModelMode('architectural');
       setIsModelLoading(false);
     }
-  }, [modelPresentation?.format, modelUrl, mountObject, parseAndMountObj, schemaContent?.model, schemaContent?.showFallbackMannequin]);
+  }, [effectiveModelUrl, modelPresentation, mountObject, parseAndMountObj, schemaContent?.showFallbackMannequin, selectedProduct.id]);
 
   // Initialize Three.js Scene
   useEffect(() => {
@@ -507,6 +530,13 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
     setLoadError(null);
   };
 
+  const handleProductSelection = (productId: ProductId) => {
+    setLocalSelectedProductId(productId);
+    onSelectProduct?.(productId);
+    setAngle(0);
+    angleRef.current = 0;
+  };
+
   // Zoom camera in/out
   const handleZoom = (direction: 'in' | 'out') => {
     if (!cameraRef.current) return;
@@ -564,8 +594,9 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 lg:gap-8 items-center glass-card-luxury border border-[#D8A065]/40 p-4 sm:p-8 lg:p-10 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-[radial-gradient(circle,rgba(216,160,101,0.15),transparent_70%)] pointer-events-none" />
           {/* Left / Center Stage: Three.js Canvas Container */}
+          <div className="lg:col-span-7 space-y-3 min-w-0">
           <div
-            className="lg:col-span-7 flex flex-col items-center justify-center relative min-h-[22.5rem] sm:min-h-125 select-none rounded-sm overflow-hidden border border-[#E2E6E8]/15 bg-[#0A1422] transition-colors shadow-[inset_0_0_40px_rgba(0,0,0,0.24)]"
+            className="flex flex-col items-center justify-center relative min-h-[22.5rem] sm:min-h-125 select-none rounded-sm overflow-hidden border border-[#E2E6E8]/15 bg-[#0A1422] transition-colors shadow-[inset_0_0_40px_rgba(0,0,0,0.24)]"
             onMouseDown={(e) => handlePointerDown(e.clientX)}
             onMouseMove={(e) => handlePointerMove(e.clientX)}
             onMouseUp={handlePointerUp}
@@ -685,6 +716,36 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
             </div>
           </div>
 
+          {products.length > 0 && (
+            <div className="border border-[#E2E6E8]/15 bg-[#0A1422]/90 p-2.5 sm:p-3" aria-label={isArabic ? 'اختيار القطعة ثلاثية الأبعاد' : 'Select a garment model'}>
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 snap-x scrollbar-thin">
+                {products.map((product) => {
+                  const active = product.id === selectedProduct.id;
+                  return (
+                    <button
+                      key={product.id}
+                      type="button"
+                      onClick={() => handleProductSelection(product.id)}
+                      aria-pressed={active}
+                      title={product.model3d ? `${product.name[language]} — ${product.model3d.format.toUpperCase()}` : `${product.name[language]} — compatibility model`}
+                      className={`group/model shrink-0 snap-start w-[4.5rem] sm:w-20 p-1 text-left border transition-all ${active ? 'border-[#D8A065] bg-[#D8A065]/10 shadow-[0_0_16px_rgba(216,160,101,0.18)]' : 'border-[#E2E6E8]/20 bg-[#132238]/50 hover:border-[#D8A065]/70'}`}
+                    >
+                      <span className="relative block aspect-square overflow-hidden bg-[#132238]">
+                        {product.editorialImage ? <img src={product.editorialImage} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover/model:scale-105" /> : <Box className="absolute inset-0 m-auto w-5 h-5 text-[#D8A065]/55" />}
+                        <span className={`absolute right-1 bottom-1 w-2 h-2 rounded-full border border-[#0A1422] ${product.model3d ? 'bg-emerald-400' : 'bg-[#D8A065]'}`} />
+                      </span>
+                      <span className={`block mt-1 truncate text-[9px] font-heading tracking-wide ${active ? 'text-[#D8A065]' : 'text-[#E2E6E8]/70'}`}>{product.code}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-[9px] font-mono uppercase tracking-wider text-[#E2E6E8]/45">
+                {isArabic ? 'اختر القطعة لتحميل مجسمها' : 'Select a piece to load its 3D model'}
+              </p>
+            </div>
+          )}
+          </div>
+
           {/* Right Column: Model Specs & Angle Scrubber Controls */}
           <div className="lg:col-span-5 space-y-5">
             {/* Model Info Card */}
@@ -719,7 +780,7 @@ export const Garment360Viewer: React.FC<Garment360ViewerProps> = ({
                   }`}
                 >
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>{isArabic ? 'هودي DROP 01 الأصلي' : 'DROP 01 HOODIE'}</span>
+                  <span>{selectedProduct.name?.[language] || (isArabic ? 'المجسم المختار' : 'SELECTED PIECE')}</span>
                 </button>
 
                 <button

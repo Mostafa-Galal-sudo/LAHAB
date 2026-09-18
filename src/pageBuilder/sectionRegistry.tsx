@@ -138,6 +138,7 @@ const ProductShowcaseAdapter: SectionAdapter<'productShowcase'> = ({ section, co
       onOpenMonogram={context.onOpenMonogram}
       onOpenFitVisualizer={context.onOpenFitVisualizer}
       onOpenReviews={context.onOpenReviews}
+      onViewIn3D={(productId) => context.onSelectViewerProduct(productId, true)}
       savedProductIds={context.savedProductIds}
       onToggleSave={context.onToggleWishlist}
       language={context.language}
@@ -168,7 +169,11 @@ const GarmentViewerAdapter: SectionAdapter<'garmentViewer'> = ({ section, contex
         title: localize(section.content.title, context),
         description: localize(section.content.description, context),
         model: section.content.model,
+        allowManualOrbit: section.content.allowManualOrbit,
+        showFallbackMannequin: section.content.showFallbackMannequin,
       }}
+      selectedProductId={context.selectedViewerProductId}
+      onSelectProduct={(productId) => context.onSelectViewerProduct(productId, false)}
     />
   );
 };
@@ -338,4 +343,3 @@ export type {
   SerialVerifierSection,
   StreetStyleLookbookSection,
 };
-

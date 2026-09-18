@@ -1,3 +1,5 @@
+import type { ModelPresentation } from '../shared/pageSchema';
+
 export type ProductId = string;
 
 export type Theme = 'navy' | 'desert';
@@ -21,6 +23,8 @@ export interface ProductItem {
   outOfStockSizes?: GarmentSize[];
   tags: Record<'en' | 'ar', string[]>;
   editorialImage?: string;
+  /** Stable asset-library reference and presentation settings for this piece. */
+  model3d?: ModelPresentation;
 }
 
 export interface MonogramCustomization {
@@ -63,4 +67,3 @@ export interface ProductReview {
     weightKg?: number;
   };
 }
-

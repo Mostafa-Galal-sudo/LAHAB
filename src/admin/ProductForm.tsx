@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload } from 'lucide-react';
+import { Box, Trash2, Upload } from 'lucide-react';
 import { ProductItem, GarmentSize } from '../types';
 import { uploadAsset } from '../lib/api';
 
@@ -32,6 +32,18 @@ const emptyForm = {
   tagsEn: '',
   tagsAr: '',
   editorialImage: '',
+  modelAssetId: '',
+  modelFileName: '',
+  modelFormat: 'obj' as 'obj' | 'glb',
+  modelScale: ['1', '1', '1'],
+  modelPosition: ['0', '0', '0'],
+  modelRotation: ['0', '0', '0'],
+  modelCameraPosition: ['0', '0.4', '4.2'],
+  modelAutoRotate: true,
+  modelAutoRotateSpeed: '1',
+  modelBackgroundColor: '#0A1422',
+  modelLightingPreset: 'studio' as 'studio' | 'softbox' | 'dramatic' | 'neutral',
+  modelMaterialColor: '',
 };
 
 export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onSubmit }) => {
@@ -58,11 +70,25 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
       tagsEn: (initial.tags?.en || []).join(', '),
       tagsAr: (initial.tags?.ar || []).join(', '),
       editorialImage: initial.editorialImage || '',
+      modelAssetId: initial.model3d?.assetId || '',
+      modelFileName: initial.model3d?.assetId || '',
+      modelFormat: initial.model3d?.format || ('obj' as const),
+      modelScale: (initial.model3d?.scale || [1, 1, 1]).map(String),
+      modelPosition: (initial.model3d?.position || [0, 0, 0]).map(String),
+      modelRotation: (initial.model3d?.rotation || [0, 0, 0]).map(String),
+      modelCameraPosition: (initial.model3d?.cameraPosition || [0, 0.4, 4.2]).map(String),
+      modelAutoRotate: initial.model3d?.autoRotate ?? true,
+      modelAutoRotateSpeed: String(initial.model3d?.autoRotateSpeed ?? 1),
+      modelBackgroundColor: initial.model3d?.backgroundColor || '#0A1422',
+      modelLightingPreset: initial.model3d?.lightingPreset || ('studio' as const),
+      modelMaterialColor: initial.model3d?.materialColor || '',
     };
   });
   const [saving, setSaving] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [imageProgress, setImageProgress] = useState(0);
+  const [modelUploading, setModelUploading] = useState(false);
+  const [modelProgress, setModelProgress] = useState(0);
   const [error, setError] = useState('');
 
   const toggleSize = (size: GarmentSize) => {
@@ -95,6 +121,20 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
 
     setSaving(true);
     try {
+      const numberVector = (values: string[]) => values.map(Number) as [number, number, number];
+      const model3d = form.modelAssetId ? {
+        assetId: form.modelAssetId,
+        format: form.modelFormat,
+        scale: numberVector(form.modelScale),
+        position: numberVector(form.modelPosition),
+        rotation: numberVector(form.modelRotation),
+        cameraPosition: numberVector(form.modelCameraPosition),
+        autoRotate: form.modelAutoRotate,
+        autoRotateSpeed: Number(form.modelAutoRotateSpeed),
+        backgroundColor: form.modelBackgroundColor,
+        lightingPreset: form.modelLightingPreset,
+        ...(form.modelMaterialColor ? { materialColor: form.modelMaterialColor } : {}),
+      } : null;
       await onSubmit({
         code: form.code,
         name: { en: form.nameEn, ar: form.nameAr },
@@ -112,6 +152,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
           ar: form.tagsAr.split(',').map((t) => t.trim()).filter(Boolean),
         },
         editorialImage: form.editorialImage || undefined,
+        model3d,
       });
     } catch (err: any) {
       setError(err.message || 'Failed to save product.');
@@ -142,6 +183,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
   );
 
   const imgFileInputRef = useRef<HTMLInputElement>(null);
+  const modelFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageFileSelect = async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -160,6 +202,59 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
       setImageUploading(false);
     }
   };
+
+  const handleModelFileSelect = async (file: File) => {
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    if (extension !== 'obj' && extension !== 'glb') {
+      setError('Please select an OBJ or GLB 3D model.');
+      return;
+    }
+    setError('');
+    setModelUploading(true);
+    setModelProgress(0);
+    try {
+      const asset = await uploadAsset(file, 'model', setModelProgress);
+      setForm((prev) => ({
+        ...prev,
+        modelAssetId: asset.id,
+        modelFileName: asset.fileName,
+        modelFormat: extension,
+      }));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : '3D model upload failed.');
+    } finally {
+      setModelUploading(false);
+      if (modelFileInputRef.current) modelFileInputRef.current.value = '';
+    }
+  };
+
+  const vectorFields = (
+    label: string,
+    values: string[],
+    update: (values: string[]) => void,
+  ) => (
+    <div className="space-y-1.5">
+      <label className="text-[10px] font-heading text-[#E2E6E8]/65 uppercase tracking-wider block">{label}</label>
+      <div className="grid grid-cols-3 gap-2">
+        {(['X', 'Y', 'Z'] as const).map((axis, index) => (
+          <label key={axis} className="flex items-center border border-[#E2E6E8]/20 bg-[#0A1422] focus-within:border-[#D8A065]">
+            <span className="px-2 text-[9px] font-mono text-[#D8A065]">{axis}</span>
+            <input
+              type="number"
+              step="0.05"
+              value={values[index]}
+              onChange={(event) => {
+                const next = [...values];
+                next[index] = event.target.value;
+                update(next);
+              }}
+              className="min-w-0 w-full bg-transparent py-2 pr-2 text-xs text-[#E2E6E8] focus:outline-none"
+            />
+          </label>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 bg-[#132238]/50 border border-[#D8A065]/30 p-5 sm:p-6">
@@ -207,6 +302,90 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
             </p>
           </div>
         </div>
+      </div>
+
+      <div className="border border-[#D8A065]/50 bg-[#0D1929] p-4 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 text-[#D8A065]">
+              <Box className="w-4 h-4" />
+              <span className="text-xs font-heading uppercase tracking-wider">Product 3D Model</span>
+            </div>
+            <p className="mt-1 text-[10px] text-[#E2E6E8]/55">Upload this piece’s OBJ or GLB. The storefront selector uses the stable asset ID.</p>
+          </div>
+          {form.modelAssetId && (
+            <button
+              type="button"
+              onClick={() => setForm((prev) => ({ ...prev, modelAssetId: '', modelFileName: '' }))}
+              className="p-2 border border-red-500/30 text-red-300 hover:bg-red-950/50"
+              title="Remove product model reference"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => modelFileInputRef.current?.click()}
+          disabled={modelUploading}
+          className="w-full py-3 px-4 border border-[#D8A065] text-[#D8A065] hover:bg-[#D8A065] hover:text-[#0D1929] disabled:opacity-50 transition-colors text-xs font-heading font-bold uppercase tracking-wider flex items-center justify-center gap-2"
+        >
+          <Upload className="w-4 h-4" />
+          {modelUploading ? `Uploading model ${modelProgress}%` : form.modelAssetId ? 'Replace 3D Model' : 'Upload OBJ / GLB'}
+        </button>
+        <input
+          ref={modelFileInputRef}
+          type="file"
+          accept=".obj,.glb,model/obj,model/gltf-binary"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) handleModelFileSelect(file);
+          }}
+        />
+
+        {form.modelAssetId && (
+          <div className="space-y-4 border-t border-[#E2E6E8]/15 pt-4">
+            <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono">
+              <span className="border border-emerald-500/40 text-emerald-300 px-2 py-1">{form.modelFormat.toUpperCase()}</span>
+              <span className="text-[#E2E6E8]/70 break-all">{form.modelFileName}</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {vectorFields('Scale', form.modelScale, (value) => setForm({ ...form, modelScale: value }))}
+              {vectorFields('Position', form.modelPosition, (value) => setForm({ ...form, modelPosition: value }))}
+              {vectorFields('Rotation (radians)', form.modelRotation, (value) => setForm({ ...form, modelRotation: value }))}
+              {vectorFields('Camera position', form.modelCameraPosition, (value) => setForm({ ...form, modelCameraPosition: value }))}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <label className="space-y-1 text-[10px] uppercase tracking-wider text-[#E2E6E8]/65">
+                <span>Lighting</span>
+                <select value={form.modelLightingPreset} onChange={(e) => setForm({ ...form, modelLightingPreset: e.target.value as typeof form.modelLightingPreset })} className="w-full bg-[#0A1422] border border-[#E2E6E8]/20 px-2 py-2 text-xs text-[#E2E6E8]">
+                  <option value="studio">Studio</option><option value="softbox">Softbox</option><option value="dramatic">Dramatic</option><option value="neutral">Neutral</option>
+                </select>
+              </label>
+              <label className="space-y-1 text-[10px] uppercase tracking-wider text-[#E2E6E8]/65">
+                <span>Orbit speed</span>
+                <input type="number" min="0" max="20" step="0.1" value={form.modelAutoRotateSpeed} onChange={(e) => setForm({ ...form, modelAutoRotateSpeed: e.target.value })} className="w-full bg-[#0A1422] border border-[#E2E6E8]/20 px-2 py-2 text-xs text-[#E2E6E8]" />
+              </label>
+              <label className="space-y-1 text-[10px] uppercase tracking-wider text-[#E2E6E8]/65">
+                <span>Background</span>
+                <input type="color" value={form.modelBackgroundColor} onChange={(e) => setForm({ ...form, modelBackgroundColor: e.target.value.toUpperCase() })} className="w-full h-9 bg-[#0A1422] border border-[#E2E6E8]/20 p-1" />
+              </label>
+              <label className="space-y-1 text-[10px] uppercase tracking-wider text-[#E2E6E8]/65">
+                <span>Material tint (optional)</span>
+                <div className="flex gap-1">
+                  <input type="color" value={form.modelMaterialColor || '#0F1C2D'} onChange={(e) => setForm({ ...form, modelMaterialColor: e.target.value.toUpperCase() })} className="w-full h-9 bg-[#0A1422] border border-[#E2E6E8]/20 p-1" />
+                  <button type="button" onClick={() => setForm({ ...form, modelMaterialColor: '' })} className="px-2 border border-[#E2E6E8]/20 text-[#E2E6E8]/60">Clear</button>
+                </div>
+              </label>
+            </div>
+            <label className="inline-flex items-center gap-2 text-xs text-[#E2E6E8]/80">
+              <input type="checkbox" checked={form.modelAutoRotate} onChange={(e) => setForm({ ...form, modelAutoRotate: e.target.checked })} className="accent-[#D8A065]" />
+              Auto-rotate this model in the storefront viewer
+            </label>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
