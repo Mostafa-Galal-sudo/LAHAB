@@ -90,6 +90,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
   const [modelUploading, setModelUploading] = useState(false);
   const [modelProgress, setModelProgress] = useState(0);
   const [error, setError] = useState('');
+  const [uploadNotice, setUploadNotice] = useState('');
 
   const toggleSize = (size: GarmentSize) => {
     setForm((prev) => {
@@ -112,6 +113,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setUploadNotice('');
 
     const price = Number(form.priceEGP);
     if (!form.code || !form.nameEn || !form.nameAr || !price || price <= 0 || form.sizes.length === 0) {
@@ -196,6 +198,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
     try {
       const asset = await uploadAsset(file, 'image', setImageProgress);
       setForm((prev) => ({ ...prev, editorialImage: asset.publicUrl }));
+      setUploadNotice(asset.metadata.source === 'github' ? 'Image committed to GitHub and attached to this piece.' : 'Image uploaded.');
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Image upload failed.');
     } finally {
@@ -210,6 +213,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
       return;
     }
     setError('');
+    setUploadNotice('');
     setModelUploading(true);
     setModelProgress(0);
     try {
@@ -220,6 +224,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
         modelFileName: asset.fileName,
         modelFormat: extension,
       }));
+      setUploadNotice(asset.metadata.source === 'github' ? '3D model committed to GitHub and attached to this piece.' : '3D model uploaded.');
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '3D model upload failed.');
     } finally {
@@ -263,6 +268,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initial, onCancel, onS
       </h2>
 
       {error && <div className="p-3 border border-red-500/60 bg-red-950/40 text-red-300 text-xs">{error}</div>}
+      {uploadNotice && <div className="p-3 border border-emerald-500/40 bg-emerald-950/25 text-emerald-200 text-xs" role="status">{uploadNotice}</div>}
 
       {/* Product Image Selection — 1-Click File Picker */}
       <div className="border border-[#D8A065]/50 bg-[#0D1929] p-4 space-y-3">

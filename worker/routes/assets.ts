@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../hono';
 import { requireAdmin } from '../auth';
+import { createGitHubAsset, deleteGitHubAsset, getGitHubAssetConfig } from '../githubAssets';
 
 export const publicAssetsRouter = new Hono<AppEnv>();
 export const adminAssetsRouter = new Hono<AppEnv>();
@@ -27,6 +28,13 @@ const RULES: Record<AssetKind, { max: number; extensions: string[]; mimes: strin
   model: { max: 50 * 1024 * 1024, extensions: ['obj', 'glb'], mimes: ['model/obj', 'text/plain', 'model/gltf-binary', 'application/octet-stream'] },
   video: { max: 100 * 1024 * 1024, extensions: ['mp4', 'webm'], mimes: ['video/mp4', 'video/webm'] },
   document: { max: 20 * 1024 * 1024, extensions: ['pdf'], mimes: ['application/pdf'] },
+};
+const GITHUB_MAX_BYTES = 10 * 1024 * 1024;
+const GITHUB_DIRECTORIES: Record<AssetKind, string> = {
+  image: 'images',
+  model: 'models',
+  video: 'videos',
+  document: 'documents',
 };
 
 function ascii(bytes: Uint8Array, start = 0, end = bytes.length) {
@@ -62,6 +70,10 @@ function toAsset(row: AssetRow) {
   return { id: row.id, kind: row.kind, publicUrl: row.publicUrl, mimeType: row.mimeType, fileName: row.fileName, byteSize: row.byteSize, metadata, createdAt: row.createdAt };
 }
 
+function parseMetadata(row: AssetRow): Record<string, unknown> {
+  try { return JSON.parse(row.metadataJson) as Record<string, unknown>; } catch { return {}; }
+}
+
 publicAssetsRouter.get('/:id', async (c) => {
   const row = await c.env.DB.prepare(`${SELECT} WHERE id = ?`).bind(c.req.param('id')).first<AssetRow>();
   if (!row) return c.json({ success: false, error: 'Asset not found.' }, 404);
@@ -72,6 +84,19 @@ publicAssetsRouter.get('/:id/content', async (c) => {
   const row = await c.env.DB.prepare(`${SELECT} WHERE id = ?`).bind(c.req.param('id')).first<AssetRow>();
   if (!row) return c.json({ success: false, error: 'Asset not found.' }, 404);
   if (row.storageKey.startsWith('bundled/')) return c.redirect(row.publicUrl, 302);
+  if (row.storageKey.startsWith('github/')) {
+    const metadata = parseMetadata(row);
+    const downloadUrl = typeof metadata.downloadUrl === 'string' ? metadata.downloadUrl : '';
+    try {
+      const url = new URL(downloadUrl);
+      if (url.protocol === 'https:' && url.hostname === 'raw.githubusercontent.com') {
+        return c.redirect(url.toString(), 302);
+      }
+    } catch {
+      // Fall through to a controlled missing-storage response.
+    }
+    return c.json({ success: false, error: 'GitHub asset URL is unavailable.' }, 503);
+  }
   const assetBucket = c.env.ASSET_BUCKET;
   if (!assetBucket) {
     return c.json({ success: false, error: 'Asset storage is not configured.' }, 503);
@@ -101,7 +126,8 @@ adminAssetsRouter.get('/', async (c) => {
 
 adminAssetsRouter.post('/', async (c) => {
   const assetBucket = c.env.ASSET_BUCKET;
-  if (!assetBucket) {
+  const github = getGitHubAssetConfig(c.env);
+  if (!assetBucket && !github) {
     return c.json({ success: false, error: 'Asset uploads are not configured.' }, 503);
   }
   const form = await c.req.formData().catch(() => null);
@@ -123,6 +149,9 @@ adminAssetsRouter.post('/', async (c) => {
   if (file.size <= 0 || file.size > rule.max) {
     return c.json({ success: false, error: `${typedKind} files must be smaller than ${Math.round(rule.max / 1024 / 1024)} MB.` }, 413);
   }
+  if (!assetBucket && github && file.size > GITHUB_MAX_BYTES) {
+    return c.json({ success: false, error: 'GitHub-backed uploads must be 10 MB or smaller.' }, 413);
+  }
   if (extension === 'glb' && file.type !== 'model/gltf-binary' && file.type !== 'application/octet-stream') {
     return c.json({ success: false, error: 'GLB files require a binary glTF MIME type.' }, 415);
   }
@@ -134,21 +163,48 @@ adminAssetsRouter.post('/', async (c) => {
   }
 
   const id = `asset-${crypto.randomUUID()}`;
-  const storageKey = `${typedKind}/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${extension}`;
+  const objectName = `${crypto.randomUUID()}.${extension}`;
+  const storageKey = assetBucket
+    ? `${typedKind}/${new Date().toISOString().slice(0, 10)}/${objectName}`
+    : `github/public/assets/${GITHUB_DIRECTORIES[typedKind]}/${objectName}`;
   const publicUrl = `/api/assets/${encodeURIComponent(id)}/content`;
   const now = new Date().toISOString();
+  let metadata: Record<string, unknown> = { extension };
   try {
-    await assetBucket.put(storageKey, file.stream(), {
-      httpMetadata: { contentType: file.type, cacheControl: 'public, max-age=31536000, immutable' },
-      customMetadata: { assetId: id, originalName: safeName, kind: typedKind },
-    });
+    if (assetBucket) {
+      await assetBucket.put(storageKey, file.stream(), {
+        httpMetadata: { contentType: file.type, cacheControl: 'public, max-age=31536000, immutable' },
+        customMetadata: { assetId: id, originalName: safeName, kind: typedKind },
+      });
+      metadata = { ...metadata, source: 'r2' };
+    } else {
+      const repositoryPath = storageKey.slice('github/'.length);
+      const committed = await createGitHubAsset(
+        github!,
+        repositoryPath,
+        new Uint8Array(await file.arrayBuffer()),
+        `${typedKind} ${safeName}`,
+      );
+      metadata = {
+        ...metadata,
+        source: 'github',
+        repository: github!.repository,
+        branch: github!.branch,
+        path: repositoryPath,
+        sha: committed.sha,
+        downloadUrl: committed.downloadUrl,
+        htmlUrl: committed.htmlUrl,
+        deploymentPending: true,
+      };
+    }
     try {
       await c.env.DB.prepare(
         `INSERT INTO assets (id, kind, storage_key, public_url, mime_type, file_name, byte_size, metadata_json, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).bind(id, typedKind, storageKey, publicUrl, file.type, safeName, file.size, JSON.stringify({ extension, source: 'r2' }), now).run();
+      ).bind(id, typedKind, storageKey, publicUrl, file.type, safeName, file.size, JSON.stringify(metadata), now).run();
     } catch (error) {
-      await assetBucket.delete(storageKey);
+      if (assetBucket) await assetBucket.delete(storageKey);
+      else if (github) await deleteGitHubAsset(github, storageKey.slice('github/'.length), String(metadata.sha ?? '')).catch(() => undefined);
       throw error;
     }
   } catch (error) {
@@ -160,10 +216,6 @@ adminAssetsRouter.post('/', async (c) => {
 });
 
 adminAssetsRouter.delete('/:id', async (c) => {
-  const assetBucket = c.env.ASSET_BUCKET;
-  if (!assetBucket) {
-    return c.json({ success: false, error: 'Asset storage is not configured.' }, 503);
-  }
   const row = await c.env.DB.prepare(`${SELECT} WHERE id = ?`).bind(c.req.param('id')).first<AssetRow>();
   if (!row) return c.json({ success: false, error: 'Asset not found.' }, 404);
   if (row.storageKey.startsWith('bundled/')) return c.json({ success: false, error: 'Bundled compatibility assets cannot be deleted.' }, 409);
@@ -173,7 +225,16 @@ adminAssetsRouter.delete('/:id', async (c) => {
     return c.json({ success: false, error: 'Asset is referenced by page or product history and cannot be deleted.', code: 'ASSET_IN_USE' }, 409);
   }
   try {
-    await assetBucket.delete(row.storageKey);
+    if (row.storageKey.startsWith('github/')) {
+      const github = getGitHubAssetConfig(c.env);
+      if (!github) return c.json({ success: false, error: 'GitHub asset storage is not configured.' }, 503);
+      const metadata = parseMetadata(row);
+      await deleteGitHubAsset(github, row.storageKey.slice('github/'.length), typeof metadata.sha === 'string' ? metadata.sha : undefined);
+    } else {
+      const assetBucket = c.env.ASSET_BUCKET;
+      if (!assetBucket) return c.json({ success: false, error: 'Asset storage is not configured.' }, 503);
+      await assetBucket.delete(row.storageKey);
+    }
     await c.env.DB.prepare('DELETE FROM assets WHERE id = ?').bind(row.id).run();
     return c.json({ success: true });
   } catch (error) {

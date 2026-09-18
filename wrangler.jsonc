@@ -25,7 +25,9 @@
   // Plain (non-secret) vars - safe to commit to git.
   "vars": {
     "PBKDF2_ITERATIONS": "100000",
-    "EMAIL_FROM": "LΛHΛB Atelier <onboarding@resend.dev>"
+    "EMAIL_FROM": "LΛHΛB Atelier <onboarding@resend.dev>",
+    "GITHUB_ASSET_REPOSITORY": "Mostafa-Galal-sudo/LAHAB",
+    "GITHUB_ASSET_BRANCH": "main"
   },
 
   "observability": {
